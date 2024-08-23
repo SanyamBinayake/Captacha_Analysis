@@ -81,6 +81,15 @@ def generate_session_data(users_df):
     def generate_time_on_page():
         return random.randint(5, 300) if random.random() < 0.9 else random.randint(1, 5)
 
+    def generate_zoom_level():
+        return random.choice([100, 125, 150, 175, 200])
+
+    def generate_key_hold_time():
+        return random.randint(0, 10) if random.random() < 0.9 else random.randint(15, 30)
+
+    def generate_interaction_with_non_clickable():
+        return random.randint(0, 50) if random.random() < 0.9 else random.randint(50, 100)
+
     sessions = pd.DataFrame({
         'session_id': range(1, num_sessions + 1),
         'user_id': [random.choice(users_df['user_id']) for _ in range(num_sessions)],
@@ -91,18 +100,23 @@ def generate_session_data(users_df):
         'time_on_page': [generate_time_on_page() for _ in range(num_sessions)],
         'js_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
         'cookie_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
+        'zoom_level': [generate_zoom_level() for _ in range(num_sessions)],
+        'key_hold_time': [generate_key_hold_time() for _ in range(num_sessions)],
+        'interaction_with_non_clickable': [generate_interaction_with_non_clickable() for _ in range(num_sessions)],
     })
     
     sessions['is_bot'] = ((sessions['mouse_movements'] > 500) | 
                           (sessions['keyboard_inputs'] > 200) | 
-                          (sessions['time_on_page'] < 5)).astype(int)
+                          (sessions['time_on_page'] < 5) |
+                          (sessions['key_hold_time'] > 10) |
+                          (sessions['interaction_with_non_clickable'] > 50)).astype(int)
     
     return sessions
 
 # Train ML model
 @st.cache_resource
 def train_model(sessions_df):
-    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled']
+    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled', 'zoom_level', 'key_hold_time', 'interaction_with_non_clickable']
     X = sessions_df[features]
     y = sessions_df['is_bot']
     
@@ -273,54 +287,39 @@ def main():
         st.subheader("User Data Sample")
         st.dataframe(users_df.head(10))
 
-    with tab3:
+       with tab3:
         st.header("Session Analysis")
         
-        # Mouse movements vs Keyboard inputs
-        fig_mouse_keyboard = px.scatter(sessions_df, x='mouse_movements', y='keyboard_inputs', 
-                                        color='is_bot', title="Mouse Movements vs Keyboard Inputs",
-                                        labels={'mouse_movements': 'Mouse Movements', 'keyboard_inputs': 'Keyboard Inputs'},
-                                        color_discrete_map={0: color_palette[0], 1: color_palette[1]})
-        fig_mouse_keyboard.update_layout(plot_bgcolor='white')
-        st.plotly_chart(fig_mouse_keyboard, use_container_width=True, config={'displayModeBar': False})
+        fig_mouse = px.histogram(sessions_df, x='mouse_movements', nbins=30, color='is_bot', 
+                                 title="Mouse Movements by User Type", color_discrete_map={0: 'blue', 1: 'red'},
+                                 labels={'mouse_movements': 'Number of Mouse Movements', 'is_bot': 'Is Bot'})
+        fig_mouse.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
+        st.plotly_chart(fig_mouse, use_container_width=True)
+    
+        fig_keyboard = px.histogram(sessions_df, x='keyboard_inputs', nbins=30, color='is_bot', 
+                                    title="Keyboard Inputs by User Type", color_discrete_map={0: 'blue', 1: 'red'},
+                                    labels={'keyboard_inputs': 'Number of Keyboard Inputs', 'is_bot': 'Is Bot'})
+        fig_keyboard.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
+        st.plotly_chart(fig_keyboard, use_container_width=True)
         
-        st.markdown("""
-        <div class='stAlert'>
-        <strong>Insights:</strong>
-        <ul>
-        <li>Human users typically show a balance between mouse movements and keyboard inputs.</li>
-        <li>Bots might show unusual patterns, such as very high mouse movements with low keyboard inputs or vice versa.</li>
-        <li>Clusters in this plot can help identify different types of bot behavior.</li>
-        </ul>
-        </div>
-        """, unsafe_allow_html=True)
+        fig_zoom = px.histogram(sessions_df, x='zoom_level', nbins=5, color='is_bot',
+                                title="Zoom Level by User Type", color_discrete_map={0: 'blue', 1: 'red'},
+                                labels={'zoom_level': 'Zoom Level', 'is_bot': 'Is Bot'})
+        fig_zoom.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
+        st.plotly_chart(fig_zoom, use_container_width=True)
         
-        # Time on page distribution
-        fig_time = px.histogram(sessions_df, x='time_on_page', color='is_bot', 
-                                title="Time on Page Distribution",
-                                labels={'time_on_page': 'Time on Page (seconds)', 'count': 'Number of Sessions'},
-                                color_discrete_map={0: color_palette[2], 1: color_palette[3]},
-                                barmode='overlay')
-        fig_time.update_layout(plot_bgcolor='white')
-        st.plotly_chart(fig_time, use_container_width=True, config={'displayModeBar': False})
+        fig_key_hold = px.histogram(sessions_df, x='key_hold_time', nbins=30, color='is_bot',
+                                    title="Key Hold Time by User Type", color_discrete_map={0: 'blue', 1: 'red'},
+                                    labels={'key_hold_time': 'Key Hold Time (seconds)', 'is_bot': 'Is Bot'})
+        fig_key_hold.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
+        st.plotly_chart(fig_key_hold, use_container_width=True)
         
-        st.markdown("""
-        <div class='stAlert'>
-                    
+        fig_non_clickable = px.histogram(sessions_df, x='interaction_with_non_clickable', nbins=30, color='is_bot',
+                                         title="Interaction with Non-Clickable Elements by User Type", color_discrete_map={0: 'blue', 1: 'red'},
+                                         labels={'interaction_with_non_clickable': 'Interactions with Non-Clickable Elements', 'is_bot': 'Is Bot'})
+        fig_non_clickable.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
+        st.plotly_chart(fig_non_clickable, use_container_width=True)
 
-
-
-        <strong>Insights:</strong>
-        <ul>
-        <li>Human users typically spend varying amounts of time on a page, often following a normal distribution.</li>
-        <li>Bots might show very short page times or unusually long times.</li>
-        <li>This information can be crucial for setting thresholds in the passive CAPTCHA system.</li>
-        </ul>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.subheader("Session Data Sample")
-        st.dataframe(sessions_df.head(10))
 
     with tab4:
         st.header("Machine Learning Insights")
