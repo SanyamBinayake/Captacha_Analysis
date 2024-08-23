@@ -111,13 +111,13 @@ def generate_session_data(users_df):
         return random.randint(5, 300) if random.random() < 0.9 else random.randint(1, 5)
 
     def generate_zoom_level():
-        return random.choice([100, 125, 150, 175, 200])
+        return random.uniform(0.5, 2.0)
 
     def generate_key_hold_time():
-        return random.randint(0, 10) if random.random() < 0.9 else random.randint(15, 30)
+        return random.uniform(0.1, 2.0)
 
     def generate_interaction_with_non_clickable():
-        return random.randint(0, 50) if random.random() < 0.9 else random.randint(50, 100)
+        return random.randint(0, 20)
 
     sessions = pd.DataFrame({
         'session_id': range(1, num_sessions + 1),
@@ -127,25 +127,26 @@ def generate_session_data(users_df):
         'mouse_movements': [generate_mouse_movements() for _ in range(num_sessions)],
         'keyboard_inputs': [generate_keyboard_inputs() for _ in range(num_sessions)],
         'time_on_page': [generate_time_on_page() for _ in range(num_sessions)],
-        'js_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
-        'cookie_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
         'zoom_level': [generate_zoom_level() for _ in range(num_sessions)],
         'key_hold_time': [generate_key_hold_time() for _ in range(num_sessions)],
         'interaction_with_non_clickable': [generate_interaction_with_non_clickable() for _ in range(num_sessions)],
+        'js_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
+        'cookie_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
     })
     
     sessions['is_bot'] = ((sessions['mouse_movements'] > 500) | 
                           (sessions['keyboard_inputs'] > 200) | 
                           (sessions['time_on_page'] < 5) |
-                          (sessions['key_hold_time'] > 10) |
-                          (sessions['interaction_with_non_clickable'] > 50)).astype(int)
+                          (sessions['zoom_level'] < 0.7) |
+                          (sessions['key_hold_time'] < 0.5) |
+                          (sessions['interaction_with_non_clickable'] > 10)).astype(int)
     
     return sessions
 
 # Train ML model
 @st.cache_resource
 def train_model(sessions_df):
-    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled', 'zoom_level', 'key_hold_time', 'interaction_with_non_clickable']
+    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'zoom_level', 'key_hold_time', 'interaction_with_non_clickable', 'js_enabled', 'cookie_enabled']
     X = sessions_df[features]
     y = sessions_df['is_bot']
     
@@ -180,7 +181,7 @@ def main():
     sessions_df = sessions_df[(sessions_df['timestamp'].dt.date >= date_range[0]) & (sessions_df['timestamp'].dt.date <= date_range[1])]
 
     # Main content
-    tab0, tab1, tab2, tab3, tab4 = st.tabs(["Problem Statement", "Overview", "User Profiles", "Session Analysis", "ML Insights"])
+    tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs(["Problem Statement", "Overview", "User Profiles", "Session Analysis", "ML Insights", "Live Analysis"])
 
     with tab0:
         st.header("Problem Statement")
@@ -192,8 +193,25 @@ def main():
                 <div class='custom-info'>
                 <h3>Quick Info</h3>
                 <p><strong>ID:</strong> 1672</p>
-                <p><strong>Organization:</strong> Ministry of Electronics and Information Technology
-                                <h4 class='subsection-title'>Key Requirements:</h4>
+                <p><strong>Organization:</strong> Ministry of Electronics and Information Technology</p>
+                <p><strong>Department:</strong> Co-ordination Division</p>
+                <p><strong>Category:</strong> Software</p>
+                <p><strong>Theme:</strong> Smart Automation</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        
+        with col2:
+            st.markdown(
+                """
+                <div class='problem-statement'>
+                <h3 class='subsection-title'>Develop a ML Model based solution to refine CAPTCHA</h3>
+                <h4 class='subsection-title'>Background:</h4>
+                <p>UIDAI aims to remove traditional CAPTCHA from its portals to improve user experience. Instead, a passive solution is needed to differentiate between bots and human users without interrupting the user flow.</p>
+                <h4 class='subsection-title'>Objective:</h4>
+                <p>Build a solution using ML models to analyze user behavior through passive means and accurately classify sessions as bot or human.</p>
+                <h4 class='subsection-title'>Key Requirements:</h4>
                 <ul>
                 <li>Develop a passive approach using environmental parameters and AI/ML.</li>
                 <li>Capture browser context and analyze with backend ML models.</li>
@@ -293,6 +311,47 @@ def main():
             gathering real-time interactions from users across various contexts.
             </div>
             """, unsafe_allow_html=True)
+    
+    with tab5:
+        st.header("Live Session Analysis")
+        
+        st.subheader("Add New Session Data")
+        with st.form(key='new_session_form'):
+            user_id = st.number_input("User ID", min_value=1, max_value=num_users, step=1)
+            mouse_movements = st.number_input("Mouse Movements", min_value=0, step=1)
+            keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, step=1)
+            time_on_page = st.number_input("Time on Page (seconds)", min_value=0, step=1)
+            zoom_level = st.slider("Zoom Level", min_value=0.5, max_value=2.0, step=0.1)
+            key_hold_time = st.slider("Key Hold Time (seconds)", min_value=0.1, max_value=2.0, step=0.1)
+            interaction_with_non_clickable = st.number_input("Interactions with Non-Clickable Elements", min_value=0, step=1)
+            js_enabled = st.selectbox("JavaScript Enabled", [True, False])
+            cookie_enabled = st.selectbox("Cookies Enabled", [True, False])
+            
+            submit_button = st.form_submit_button("Submit")
+            
+            if submit_button:
+                # Create new session entry
+                new_session = pd.DataFrame({
+                    'user_id': [user_id],
+                    'timestamp': [pd.Timestamp.now()],
+                    'ip_address': [fake.ipv4()],
+                    'mouse_movements': [mouse_movements],
+                    'keyboard_inputs': [keyboard_inputs],
+                    'time_on_page': [time_on_page],
+                    'zoom_level': [zoom_level],
+                    'key_hold_time': [key_hold_time],
+                    'interaction_with_non_clickable': [interaction_with_non_clickable],
+                    'js_enabled': [js_enabled],
+                    'cookie_enabled': [cookie_enabled]
+                })
+                
+                # Classify new session
+                prediction = model.predict(new_session)
+                probability = model.predict_proba(new_session)
+                
+                st.subheader("Session Classification")
+                st.write(f"Classification: {'Bot' if prediction[0] == 1 else 'Human'}")
+                st.write(f"Probability: {probability[0][1]:.2f} (Bot), {probability[0][0]:.2f} (Human)")
 
 if __name__ == "__main__":
     main()
