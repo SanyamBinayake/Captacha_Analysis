@@ -20,17 +20,20 @@ st.markdown("""
     <style>
         /* General app styles */
         body {
-            background-color:#FFFFFF;
+            background-color: #ffffff;
+            color: #333333;
+            font-family: Arial, sans-serif;
         }
         .block-container {
             padding-top: 2rem;
             padding-bottom: 2rem;
         }
         h1, h2, h3, h4 {
-            color: black;
+            color: #1f77b4;
+            margin-bottom: 0.5rem;
         }
         p, li, strong {
-            color: black;
+            color: #333333;
         }
 
         /* Specific styles for custom elements */
@@ -38,19 +41,20 @@ st.markdown("""
             background-color: #E6F3FF;
             padding: 20px;
             border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .custom-info h3 {
             color: #1f77b4;
         }
         .stAlert {
-            background-color: transparent;
+            background-color: #f9f9f9;
             border: 1px solid #1f77b4;
             border-radius: 5px;
             padding: 10px;
-            color: black;
+            color: #333333;
         }
         .stMetric, .plot-container, .your-custom-class {
-            background-color: transparent;
+            background-color: #ffffff;
             border-radius: 5px;
             padding: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -69,8 +73,8 @@ st.markdown("""
             border: 1px solid #1f77b4;
             border-radius: 5px;
             padding: 10px;
-            color: black;
-            background-color: transparent;
+            color: #333333;
+            background-color: #f9f9f9;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -214,7 +218,8 @@ def main():
         with col2:
             st.metric("Total Sessions", len(sessions_df))
         with col3:
-            st.metric("Human Sessions", len(sessions_df[sessions_df['is_bot'] == 0]))
+            st.metric("Human Sessions",
+                    st.metric("Human Sessions", len(sessions_df[sessions_df['is_bot'] == 0]))
         with col4:
             st.metric("Bot Sessions", len(sessions_df[sessions_df['is_bot'] == 1]))
         
