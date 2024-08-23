@@ -288,38 +288,39 @@ def main():
         st.dataframe(users_df.head(10))
 
        with tab3:
-        st.header("Session Analysis")
+           st.header("Session Analysis")
+            
+            fig_mouse = px.histogram(sessions_df, x='mouse_movements', nbins=30, color='is_bot', 
+                                     title="Mouse Movements by User Type", color_discrete_map={0: 'blue', 1: 'red'},
+                                     labels={'mouse_movements': 'Number of Mouse Movements', 'is_bot': 'Is Bot'})
+            fig_mouse.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
+            st.plotly_chart(fig_mouse, use_container_width=True)
         
-        fig_mouse = px.histogram(sessions_df, x='mouse_movements', nbins=30, color='is_bot', 
-                                 title="Mouse Movements by User Type", color_discrete_map={0: 'blue', 1: 'red'},
-                                 labels={'mouse_movements': 'Number of Mouse Movements', 'is_bot': 'Is Bot'})
-        fig_mouse.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
-        st.plotly_chart(fig_mouse, use_container_width=True)
-    
-        fig_keyboard = px.histogram(sessions_df, x='keyboard_inputs', nbins=30, color='is_bot', 
-                                    title="Keyboard Inputs by User Type", color_discrete_map={0: 'blue', 1: 'red'},
-                                    labels={'keyboard_inputs': 'Number of Keyboard Inputs', 'is_bot': 'Is Bot'})
-        fig_keyboard.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
-        st.plotly_chart(fig_keyboard, use_container_width=True)
-        
-        fig_zoom = px.histogram(sessions_df, x='zoom_level', nbins=5, color='is_bot',
-                                title="Zoom Level by User Type", color_discrete_map={0: 'blue', 1: 'red'},
-                                labels={'zoom_level': 'Zoom Level', 'is_bot': 'Is Bot'})
-        fig_zoom.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
-        st.plotly_chart(fig_zoom, use_container_width=True)
-        
-        fig_key_hold = px.histogram(sessions_df, x='key_hold_time', nbins=30, color='is_bot',
-                                    title="Key Hold Time by User Type", color_discrete_map={0: 'blue', 1: 'red'},
-                                    labels={'key_hold_time': 'Key Hold Time (seconds)', 'is_bot': 'Is Bot'})
-        fig_key_hold.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
-        st.plotly_chart(fig_key_hold, use_container_width=True)
-        
-        fig_non_clickable = px.histogram(sessions_df, x='interaction_with_non_clickable', nbins=30, color='is_bot',
-                                         title="Interaction with Non-Clickable Elements by User Type", color_discrete_map={0: 'blue', 1: 'red'},
-                                         labels={'interaction_with_non_clickable': 'Interactions with Non-Clickable Elements', 'is_bot': 'Is Bot'})
-        fig_non_clickable.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
-        st.plotly_chart(fig_non_clickable, use_container_width=True)
+            fig_keyboard = px.histogram(sessions_df, x='keyboard_inputs', nbins=30, color='is_bot', 
+                                        title="Keyboard Inputs by User Type", color_discrete_map={0: 'blue', 1: 'red'},
+                                        labels={'keyboard_inputs': 'Number of Keyboard Inputs', 'is_bot': 'Is Bot'})
+            fig_keyboard.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
+            st.plotly_chart(fig_keyboard, use_container_width=True)
+            
+            fig_zoom = px.histogram(sessions_df, x='zoom_level', nbins=5, color='is_bot',
+                                    title="Zoom Level by User Type", color_discrete_map={0: 'blue', 1: 'red'},
+                                    labels={'zoom_level': 'Zoom Level', 'is_bot': 'Is Bot'})
+            fig_zoom.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
+            st.plotly_chart(fig_zoom, use_container_width=True)
+            
+            fig_key_hold = px.histogram(sessions_df, x='key_hold_time', nbins=30, color='is_bot',
+                                        title="Key Hold Time by User Type", color_discrete_map={0: 'blue', 1: 'red'},
+                                        labels={'key_hold_time': 'Key Hold Time (seconds)', 'is_bot': 'Is Bot'})
+            fig_key_hold.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
+            st.plotly_chart(fig_key_hold, use_container_width=True)
+            
+            fig_non_clickable = px.histogram(sessions_df, x='interaction_with_non_clickable', nbins=30, color='is_bot',
+                                             title="Interaction with Non-Clickable Elements by User Type", color_discrete_map={0: 'blue', 1: 'red'},
+                                             labels={'interaction_with_non_clickable': 'Interactions with Non-Clickable Elements', 'is_bot': 'Is Bot'})
+            fig_non_clickable.update_layout(plot_bgcolor='white', paper_bgcolor='rgba(0,0,0,0)', title_font=dict(size=24, color='black'))
+            st.plotly_chart(fig_non_clickable, use_container_width=True)
 
+            
 
     with tab4:
         st.header("Machine Learning Insights")
