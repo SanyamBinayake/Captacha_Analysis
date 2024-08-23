@@ -20,7 +20,7 @@ st.markdown("""
     <style>
         /* General app styles */
         body {
-            background-color: #f0f2f6;
+            background-color: white;
         }
         .block-container {
             padding-top: 2rem;
