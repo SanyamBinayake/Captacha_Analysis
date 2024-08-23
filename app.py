@@ -217,9 +217,9 @@ def main():
             st.metric("Total Users", len(users_df))
         with col2:
             st.metric("Total Sessions", len(sessions_df))
-        with col3:
-            st.metric("Human Sessions",
-                    st.metric("Human Sessions", len(sessions_df[sessions_df['is_bot'] == 0]))
+       with col3:
+    st.metric("Human Sessions", len(sessions_df[sessions_df['is_bot'] == 0]))
+
         with col4:
             st.metric("Bot Sessions", len(sessions_df[sessions_df['is_bot'] == 1]))
         
