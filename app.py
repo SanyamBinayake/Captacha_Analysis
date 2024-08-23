@@ -2,12 +2,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import plotly.graph_objects as go
 from faker import Faker
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix, classification_report
-import joblib
+from sklearn.metrics import classification_report
 import random
 
 # Set page config
@@ -59,7 +57,7 @@ num_users = 1000
 num_sessions = 5000
 
 # Generate User Data
-@st.cache_data
+@st.cache
 def generate_user_data():
     return pd.DataFrame({
         'user_id': range(1, num_users + 1),
@@ -70,7 +68,7 @@ def generate_user_data():
     })
 
 # Generate Session Data
-@st.cache_data
+@st.cache
 def generate_session_data(users_df):
     def generate_mouse_movements():
         return random.randint(0, 100) if random.random() < 0.9 else random.randint(500, 1000)
@@ -104,7 +102,7 @@ def generate_session_data(users_df):
     return sessions
 
 # Train ML model
-@st.cache_resource
+@st.cache
 def train_model(sessions_df):
     features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled', 'zoom_level']
     X = sessions_df[features]
@@ -116,9 +114,9 @@ def train_model(sessions_df):
     model.fit(X_train, y_train)
     
     y_pred = model.predict(X_test)
+    report = classification_report(y_test, y_pred)
     
-    return model, classification_report(y_test, y_pred)
-
+    return model, report
 
 # Main app
 def main():
@@ -136,7 +134,7 @@ def main():
     sessions_df = generate_session_data(users_df)
     
     # Train ML model
-    model, features, classification_report_text = train_model(sessions_df)
+    model, classification_report_text = train_model(sessions_df)
     
     # Filter data based on sidebar inputs
     sessions_df = sessions_df[(sessions_df['timestamp'].dt.date >= date_range[0]) & (sessions_df['timestamp'].dt.date <= date_range[1])]
@@ -278,7 +276,7 @@ def main():
         
         with col1:
             st.subheader("Model Performance")
-            st.code(classification_report, language='text')
+            st.code(classification_report_text, language='text')
         
         with col2:
             st.markdown("""
