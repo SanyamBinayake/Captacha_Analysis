@@ -145,7 +145,7 @@ def main():
     sessions_df = generate_session_data(users_df)
     
     # Train ML model
-    model, classification_report = train_model(sessions_df)
+    model, classification_report_text = train_model(sessions_df)
     
     # Filter data based on sidebar inputs
     sessions_df = sessions_df[(sessions_df['timestamp'].dt.date >= date_range[0]) & (sessions_df['timestamp'].dt.date <= date_range[1])]
@@ -193,37 +193,56 @@ def main():
                 """,
                 unsafe_allow_html=True
             )
-    
+
     with tab1:
         st.header("Overview")
-        st.write("This application provides insights into the ML-enhanced passive CAPTCHA solution. You can view user profiles, session analysis, and ML insights through the tabs below.")
-    
+
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.image("https://example.com/overview_image.png", caption="System Overview", use_column_width=True)
+        
+        with col2:
+            st.write("### Architecture Diagram")
+            st.image("https://example.com/architecture_diagram.png", use_column_width=True)
+
     with tab2:
         st.header("User Profiles")
         
         st.dataframe(users_df)
 
-        st.bar_chart(users_df['browser'].value_counts(), use_container_width=True, title="Browser Distribution", color=color_palette[1])
-        st.bar_chart(users_df['operating_system'].value_counts(), use_container_width=True, title="Operating System Distribution", color=color_palette[2])
-    
+        browser_counts = users_df['browser'].value_counts()
+        st.bar_chart(browser_counts, use_container_width=True)
+        st.write("### Browser Distribution")
+
+        os_counts = users_df['operating_system'].value_counts()
+        st.bar_chart(os_counts, use_container_width=True)
+        st.write("### Operating System Distribution")
+
     with tab3:
         st.header("Session Analysis")
         
         st.dataframe(sessions_df)
 
-        st.bar_chart(sessions_df['zoom_level'].value_counts(), use_container_width=True, title="Zoom Level Distribution", color=color_palette[3])
-        st.bar_chart(sessions_df['key_hold_time'].value_counts(), use_container_width=True, title="Key Hold Time Distribution", color=color_palette[4])
-    
+        zoom_counts = sessions_df['zoom_level'].value_counts()
+        st.bar_chart(zoom_counts, use_container_width=True)
+        st.write("### Zoom Level Distribution")
+
+        key_hold_counts = sessions_df['key_hold_time'].value_counts()
+        st.bar_chart(key_hold_counts, use_container_width=True)
+        st.write("### Key Hold Time Distribution")
+
     with tab4:
         st.header("ML Insights")
-        
-        st.write("### Model Performance:")
-        st.text(classification_report)
-        
-        st.write("### Confusion Matrix:")
-        cm = confusion_matrix(sessions_df['is_bot'], model.predict(sessions_df[['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled', 'zoom_level', 'key_hold_time', 'interaction_with_non_clickable']]))
-        fig = go.Figure(data=go.Heatmap(z=cm, x=['Normal', 'Bot'], y=['Normal', 'Bot'], colorscale='Viridis'))
+
+        st.write("### Model Performance")
+        st.text(classification_report_text)
+
+        # Placeholder for model performance metrics
+        st.write("### Confusion Matrix")
+        cm = confusion_matrix(sessions_df['is_bot'], model.predict(sessions_df[features]))
+        fig = go.Figure(data=go.Heatmap(z=cm, x=['Not Bot', 'Bot'], y=['Not Bot', 'Bot'], colorscale='Viridis'))
+        fig.update_layout(title='Confusion Matrix', xaxis_title='Predicted', yaxis_title='Actual')
         st.plotly_chart(fig, use_container_width=True)
-    
+
 if __name__ == "__main__":
     main()
