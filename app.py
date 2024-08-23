@@ -29,7 +29,7 @@ st.markdown("""
         h1, h2, h3, h4 {
             color: black;
         }
-        p, li, strong, .stAlert {
+        p, li, strong {
             color: black;
         }
 
