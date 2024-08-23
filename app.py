@@ -127,7 +127,7 @@ def train_model(sessions_df):
     
     y_pred = model.predict(X_test)
     
-    return model, classification_report(y_test, y_pred)
+    return model, features, classification_report(y_test, y_pred)
 
 # Main app
 def main():
@@ -145,7 +145,7 @@ def main():
     sessions_df = generate_session_data(users_df)
     
     # Train ML model
-    model, classification_report_text = train_model(sessions_df)
+    model, features, classification_report_text = train_model(sessions_df)
     
     # Filter data based on sidebar inputs
     sessions_df = sessions_df[(sessions_df['timestamp'].dt.date >= date_range[0]) & (sessions_df['timestamp'].dt.date <= date_range[1])]
@@ -187,8 +187,6 @@ def main():
                 <li>Minimize human interaction for better user experience.</li>
                 <li>Ensure compliance with UIDAI's privacy policies.</li>
                 </ul>
-                <h4 style='color: #ff7f0e;'>Expected Solution:</h4>
-                <p>A complete solution with frontend and backend design, corresponding code, and ML model to demonstrate the passive CAPTCHA approach.</p>
                 </div>
                 """,
                 unsafe_allow_html=True
