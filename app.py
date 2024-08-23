@@ -2,12 +2,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import plotly.graph_objects as go
 from faker import Faker
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix, classification_report
-import joblib
+from sklearn.metrics import classification_report
 import random
 
 # Set page config
@@ -59,7 +57,7 @@ num_users = 1000
 num_sessions = 5000
 
 # Generate User Data
-@st.cache_data
+@st.cache
 def generate_user_data():
     return pd.DataFrame({
         'user_id': range(1, num_users + 1),
@@ -70,7 +68,7 @@ def generate_user_data():
     })
 
 # Generate Session Data
-@st.cache_data
+@st.cache
 def generate_session_data(users_df):
     def generate_mouse_movements():
         return random.randint(0, 100) if random.random() < 0.9 else random.randint(500, 1000)
@@ -80,6 +78,9 @@ def generate_session_data(users_df):
 
     def generate_time_on_page():
         return random.randint(5, 300) if random.random() < 0.9 else random.randint(1, 5)
+
+    def generate_zoom_level():
+        return random.choice([100, 125, 150, 175, 200])
 
     sessions = pd.DataFrame({
         'session_id': range(1, num_sessions + 1),
@@ -91,6 +92,7 @@ def generate_session_data(users_df):
         'time_on_page': [generate_time_on_page() for _ in range(num_sessions)],
         'js_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
         'cookie_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
+        'zoom_level': [generate_zoom_level() for _ in range(num_sessions)],
     })
     
     sessions['is_bot'] = ((sessions['mouse_movements'] > 500) | 
@@ -100,9 +102,9 @@ def generate_session_data(users_df):
     return sessions
 
 # Train ML model
-@st.cache_resource
+@st.cache
 def train_model(sessions_df):
-    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled']
+    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled', 'zoom_level']
     X = sessions_df[features]
     y = sessions_df['is_bot']
     
@@ -112,8 +114,9 @@ def train_model(sessions_df):
     model.fit(X_train, y_train)
     
     y_pred = model.predict(X_test)
+    report = classification_report(y_test, y_pred)
     
-    return model, classification_report(y_test, y_pred)
+    return model, report
 
 # Main app
 def main():
@@ -131,7 +134,7 @@ def main():
     sessions_df = generate_session_data(users_df)
     
     # Train ML model
-    model, classification_report = train_model(sessions_df)
+    model, classification_report_text = train_model(sessions_df)
     
     # Filter data based on sidebar inputs
     sessions_df = sessions_df[(sessions_df['timestamp'].dt.date >= date_range[0]) & (sessions_df['timestamp'].dt.date <= date_range[1])]
@@ -173,8 +176,6 @@ def main():
                 <li>Minimize human interaction for better user experience.</li>
                 <li>Ensure compliance with UIDAI's privacy policies.</li>
                 </ul>
-                <h4 style='color: #ff7f0e;'>Expected Solution:</h4>
-                <p>A complete solution with frontend and backend design, corresponding code, and ML model to demonstrate the passive CAPTCHA approach.</p>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -182,78 +183,168 @@ def main():
 
     with tab1:
         st.header("Overview")
-        col1, col2, col3, col4 = st.columns(4)
-        
+
+        col1, col2 = st.columns([1, 2])
         with col1:
-            st.metric("Total Users", len(users_df))
+            st.image("https://example.com/overview_image.png", caption="System Overview", use_column_width=True)
+        
         with col2:
-            st.metric("Total Sessions", len(sessions_df))
-        with col3:
-            st.metric("Human Sessions", len(sessions_df[sessions_df['is_bot'] == 0]))
-        with col4:
-            st.metric("Bot Sessions", len(sessions_df[sessions_df['is_bot'] == 1]))
-        
-        st.markdown("---")
-        
-        # Sessions over time
-        fig_sessions = px.line(sessions_df.groupby(sessions_df['timestamp'].dt.date).size().reset_index(name='count'), 
-                               x='timestamp', y='count', title="Sessions Over Time",
-                               labels={'timestamp': 'Date', 'count': 'Number of Sessions'})
-        st.plotly_chart(fig_sessions)
-        
+            st.write("### Architecture Diagram")
+            st.image("https://example.com/architecture_diagram.png", use_column_width=True)
+
     with tab2:
         st.header("User Profiles")
-        st.markdown("### Distribution of Users by Browser")
-        browser_counts = users_df['browser'].value_counts()
-        fig_browser = px.pie(browser_counts, names=browser_counts.index, values=browser_counts.values, title="Browser Distribution")
-        st.plotly_chart(fig_browser)
+        
+        st.dataframe(users_df)
 
-        st.markdown("### Distribution of Users by Operating System")
+        browser_counts = users_df['browser'].value_counts()
+        st.bar_chart(browser_counts, use_container_width=True)
+        st.write("### Browser Distribution")
+
         os_counts = users_df['operating_system'].value_counts()
-        fig_os = px.pie(os_counts, names=os_counts.index, values=os_counts.values, title="Operating System Distribution")
-        st.plotly_chart(fig_os)
-        
-        st.markdown("### Distribution of Users by Screen Resolution")
-        resolution_counts = users_df['screen_resolution'].value_counts()
-        fig_resolution = px.pie(resolution_counts, names=resolution_counts.index, values=resolution_counts.values, title="Screen Resolution Distribution")
-        st.plotly_chart(fig_resolution)
-        
+        st.bar_chart(os_counts, use_container_width=True)
+        st.write("### Operating System Distribution")
+
     with tab3:
         st.header("Session Analysis")
         
-        st.markdown("### Distribution of Mouse Movements")
-        fig_mouse = px.histogram(sessions_df, x='mouse_movements', nbins=30, title="Mouse Movements Distribution")
-        st.plotly_chart(fig_mouse)
+        # Mouse movements vs Keyboard inputs
+        fig_mouse_keyboard = px.scatter(sessions_df, x='mouse_movements', y='keyboard_inputs', 
+                                        color='is_bot', title="Mouse Movements vs Keyboard Inputs",
+                                        labels={'mouse_movements': 'Mouse Movements', 'keyboard_inputs': 'Keyboard Inputs'},
+                                        color_discrete_map={0: color_palette[0], 1: color_palette[1]})
+        fig_mouse_keyboard.update_layout(plot_bgcolor='white')
+        st.plotly_chart(fig_mouse_keyboard, use_container_width=True, config={'displayModeBar': False})
         
-        st.markdown("### Distribution of Keyboard Inputs")
-        fig_keyboard = px.histogram(sessions_df, x='keyboard_inputs', nbins=30, title="Keyboard Inputs Distribution")
-        st.plotly_chart(fig_keyboard)
+        st.markdown("""
+        <div class='stAlert'>
+        <strong>Insights:</strong>
+        <ul>
+        <li>Human users typically show a balance between mouse movements and keyboard inputs.</li>
+        <li>Bots might show unusual patterns, such as very high mouse movements with low keyboard inputs or vice versa.</li>
+        <li>Clusters in this plot can help identify different types of bot behavior.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
         
-        st.markdown("### Distribution of Time on Page")
-        fig_time = px.histogram(sessions_df, x='time_on_page', nbins=30, title="Time on Page Distribution")
-        st.plotly_chart(fig_time)
+        # Time on page distribution
+        fig_time = px.histogram(sessions_df, x='time_on_page', color='is_bot', 
+                                title="Time on Page Distribution",
+                                labels={'time_on_page': 'Time on Page (seconds)', 'count': 'Number of Sessions'},
+                                color_discrete_map={0: color_palette[2], 1: color_palette[3]},
+                                barmode='overlay')
+        fig_time.update_layout(plot_bgcolor='white')
+        st.plotly_chart(fig_time, use_container_width=True, config={'displayModeBar': False})
         
-        st.markdown("### Bot vs Human Sessions")
-        fig_bot_vs_human = px.histogram(sessions_df, x='is_bot', nbins=2, title="Bot vs Human Sessions")
-        st.plotly_chart(fig_bot_vs_human)
+        st.markdown("""
+        <div class='stAlert'>
+        <strong>Insights:</strong>
+        <ul>
+        <li>Human users typically spend varying amounts of time on a page, often following a normal distribution.</li>
+        <li>Bots might show very short page times or unusually long times.</li>
+        <li>This information can be crucial for setting thresholds in the passive CAPTCHA system.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
         
-        st.markdown("### Zoom Level Visualization")
-        zoom_level = st.slider("Select Zoom Level", min_value=1, max_value=5, value=3)
-        fig_zoom = px.scatter(sessions_df, x='mouse_movements', y='keyboard_inputs', color='is_bot',
-                              size='time_on_page', hover_data=['timestamp'],
-                              title=f"Mouse Movements vs Keyboard Inputs (Zoom Level: {zoom_level})")
-        fig_zoom.update_layout(xaxis=dict(range=[0, zoom_level * 1000]), yaxis=dict(range=[0, zoom_level * 500]), autosize=True)
-        st.plotly_chart(fig_zoom)
+        # Zoom Level distribution
+        fig_zoom = px.histogram(sessions_df, x='zoom_level', color='is_bot', 
+                                title="Zoom Level Distribution",
+                                labels={'zoom_level': 'Zoom Level (%)', 'count': 'Number of Sessions'},
+                                color_discrete_map={0: color_palette[2], 1: color_palette[3]},
+                                barmode='overlay')
+        fig_zoom.update_layout(plot_bgcolor='white')
+        st.plotly_chart(fig_zoom, use_container_width=True, config={'displayModeBar': False})
         
+        st.markdown("""
+        <div class='stAlert'>
+        <strong>Insights:</strong>
+        <ul>
+        <li>Different zoom levels can affect how users interact with the page.</li>
+        <li>Analyze how zoom levels impact the bot classification to adjust the CAPTCHA thresholds accordingly.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.subheader("Session Data Sample")
+        st.dataframe(sessions_df.head(10))
+
     with tab4:
-        st.header("ML Insights")
-        st.text_area("Classification Report", classification_report, height=300)
+        st.header("Machine Learning Insights")
         
-        st.markdown("### Confusion Matrix")
-        cm = confusion_matrix(sessions_df['is_bot'], model.predict(sessions_df[['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled']]))
-        fig_cm = px.imshow(cm, text_auto=True, title="Confusion Matrix")
-        fig_cm.update_layout(xaxis_title="Predicted Label", yaxis_title="True Label")
-        st.plotly_chart(fig_cm)
+        col1, col2 = st.columns(2)
         
-if __name__ == "__main__":
+        with col1:
+            st.subheader("Model Performance")
+            st.code(classification_report_text, language='text')
+        
+        with col2:
+            st.markdown("""
+            <div class='stAlert'>
+            <strong>Interpretation:</strong>
+            <ul>
+            <li>High precision reduces false positives, ensuring we don't wrongly label human users as bots.</li>
+            <li>High recall ensures we're catching most of the actual bot sessions.</li>
+            <li>The F1-score balances precision and recall, giving an overall measure of the model's performance.</li>
+            </ul>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.subheader("Feature Importance")
+        feature_importance = pd.DataFrame({
+            'feature': ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled', 'zoom_level'],
+            'importance': model.feature_importances_
+        }).sort_values('importance', ascending=False)
+        
+        fig_importance = px.bar(feature_importance, x='importance', y='feature', orientation='h',
+                                title="Feature Importance for Bot Detection",
+                                labels={'importance': 'Importance Score', 'feature': 'Feature'},
+                                color='importance',
+                                color_continuous_scale=px.colors.sequential.Viridis)
+        fig_importance.update_layout(plot_bgcolor='white')
+        st.plotly_chart(fig_importance, use_container_width=True, config={'displayModeBar': False})
+        
+        st.markdown("""
+        <div class='stAlert'>
+        <strong>Insights:</strong>
+        <ul>
+        <li>Features with high importance are the most crucial for distinguishing between bots and humans.</li>
+        <li>This information can guide further refinement of the passive CAPTCHA system, focusing on the most relevant features.</li>
+        <li>Less important features might be candidates for removal to simplify the model and improve performance.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.subheader("Live Session Classification")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
+            keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
+        with col2:
+            time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
+            js_enabled = st.checkbox("JavaScript Enabled", value=True)
+        with col3:
+            cookie_enabled = st.checkbox("Cookies Enabled", value=True)
+            zoom_level = st.selectbox("Zoom Level (%)", options=[100, 125, 150, 175, 200])
+
+        if st.button("Classify Session"):
+            input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, 
+                                    int(js_enabled), int(cookie_enabled), zoom_level]])
+            prediction = model.predict(input_data)[0]
+            probability = model.predict_proba(input_data)[0][1]
+            
+            result_color = "#2ca02c" if prediction == 0 else "#d62728"
+            result_text = "Human" if prediction == 0 else "Bot"
+            
+            st.markdown(f"""
+            <div style='color: {result_color}; font-size: 24px;'>
+            <strong>Classification Result:</strong> {result_text}
+            </div>
+            <div>
+            <strong>Probability of being a bot:</strong> {probability:.2f}
+            </div>
+            """, unsafe_allow_html=True)
+
+
+if _name_ == "_main_":
     main()
