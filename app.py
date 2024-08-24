@@ -270,7 +270,7 @@ def main():
         """, unsafe_allow_html=True)
         
         st.subheader("User Data Sample")
-        st.dataframe(users_df.head(100))
+        st.dataframe(users_df.head(5))
 
     with tab3:
         st.header("Session Analysis")
