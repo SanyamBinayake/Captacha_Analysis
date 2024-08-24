@@ -1,14 +1,11 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from faker import Faker
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix, classification_report
-import joblib
-import random
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+import numpy as np
 
 # Set page config
 st.set_page_config(page_title="ML-Enhanced Passive CAPTCHA Solution", layout="wide")
@@ -50,53 +47,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize Faker
-fake = Faker()
-Faker.seed(0)
-
-# Set the number of records to generate
-num_users = 1000
-num_sessions = 5000
-
-# Generate User Data
+# Load static data
 @st.cache_data
-def generate_user_data():
-    return pd.DataFrame({
-        'user_id': range(1, num_users + 1),
-        'browser': [random.choice(['Chrome', 'Firefox', 'Safari', 'Edge']) for _ in range(num_users)],
-        'operating_system': [random.choice(['Windows', 'MacOS', 'Linux', 'iOS', 'Android']) for _ in range(num_users)],
-        'screen_resolution': [random.choice(['1920x1080', '1366x768', '1440x900', '2560x1440']) for _ in range(num_users)],
-        'language': [random.choice(['en-US', 'es-ES', 'fr-FR', 'de-DE', 'zh-CN']) for _ in range(num_users)],
-    })
-
-# Generate Session Data
-@st.cache_data
-def generate_session_data(users_df):
-    def generate_mouse_movements():
-        return random.randint(0, 100) if random.random() < 0.9 else random.randint(500, 1000)
-
-    def generate_keyboard_inputs():
-        return random.randint(0, 50) if random.random() < 0.9 else random.randint(200, 500)
-
-    def generate_time_on_page():
-        return random.randint(5, 300) if random.random() < 0.9 else random.randint(1, 5)
-
-    sessions = pd.DataFrame({
-        'session_id': range(1, num_sessions + 1),
-        'user_id': [random.choice(users_df['user_id']) for _ in range(num_sessions)],
-        'timestamp': [fake.date_time_this_year() for _ in range(num_sessions)],
-        'ip_address': [fake.ipv4() for _ in range(num_sessions)],
-        'mouse_movements': [generate_mouse_movements() for _ in range(num_sessions)],
-        'keyboard_inputs': [generate_keyboard_inputs() for _ in range(num_sessions)],
-        'time_on_page': [generate_time_on_page() for _ in range(num_sessions)],
-        'js_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
-    })
+def load_static_data():
+    # Load user data
+    users_df = pd.read_csv('static_user_data.csv')
     
-    sessions['is_bot'] = ((sessions['mouse_movements'] > 500) | 
-                          (sessions['keyboard_inputs'] > 200) | 
-                          (sessions['time_on_page'] < 5)).astype(int)
+    # Load session data
+    sessions_df = pd.read_csv('static_session_data.csv')
     
-    return sessions
+    return users_df, sessions_df
 
 # Train ML model
 @st.cache_resource
@@ -118,8 +78,6 @@ def train_model(sessions_df):
 def main():
     st.title("ML-Enhanced Passive CAPTCHA Solution for UIDAI")
 
-
-
     # Sidebar
     st.sidebar.title("Settings")
     date_range = st.sidebar.date_input("Select Date Range", 
@@ -127,14 +85,14 @@ def main():
                                        min_value=pd.Timestamp.now() - pd.Timedelta(days=365),
                                        max_value=pd.Timestamp.now())
     
-    # Generate data
-    users_df = generate_user_data()
-    sessions_df = generate_session_data(users_df)
+    # Load static data
+    users_df, sessions_df = load_static_data()
     
     # Train ML model
     model, classification_report = train_model(sessions_df)
     
     # Filter data based on sidebar inputs
+    sessions_df['timestamp'] = pd.to_datetime(sessions_df['timestamp'])
     sessions_df = sessions_df[(sessions_df['timestamp'].dt.date >= date_range[0]) & (sessions_df['timestamp'].dt.date <= date_range[1])]
 
     # Main content
@@ -240,174 +198,73 @@ def main():
     with tab2:
         st.header("User Profiles")
         
-        col1, col2 = st.columns(2)
+        # User activity distribution
+        user_activity = users_df.groupby('user_id').agg({
+            'mouse_movements': 'sum',
+            'keyboard_inputs': 'sum',
+            'time_on_page': 'sum',
+            'js_enabled': 'mean'
+        }).reset_index()
         
-        with col1:
-            # Browser distribution
-            fig_browsers = px.pie(users_df['browser'].value_counts().reset_index(), 
-                                  values='count', names='browser', title="Browser Distribution",
-                                  color_discrete_sequence=color_palette)
-            fig_browsers.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig_browsers, use_container_width=True, config={'displayModeBar': False})
+        fig_user_activity = px.histogram(user_activity, x='mouse_movements', nbins=50, title="Mouse Movements Distribution",
+                                         labels={'mouse_movements': 'Mouse Movements'},
+                                         color_discrete_sequence=[color_palette[3]])
+        fig_user_activity.update_layout(plot_bgcolor='white')
+        st.plotly_chart(fig_user_activity, use_container_width=True, config={'displayModeBar': False})
         
-        with col2:
-            # Operating System distribution
-            fig_os = px.pie(users_df['operating_system'].value_counts().reset_index(), 
-                            values='count', names='operating_system', title="Operating System Distribution",
-                            color_discrete_sequence=color_palette)
-            fig_os.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig_os, use_container_width=True, config={'displayModeBar': False})
+        st.markdown("---")
         
-        st.markdown("""
-        <div class='stAlert'>
-        <strong>Insights:</strong>
-        <ul>
-        <li>Unusual browser or OS distributions might indicate bot activity.</li>
-        <li>This information can help tailor the passive CAPTCHA solution for different environments.</li>
-        <li>Consider focusing on the most common browsers and operating systems for initial implementation.</li>
-        </ul>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.subheader("User Data Sample")
-        st.dataframe(users_df.head(100))
+        fig_user_activity_keyboard = px.histogram(user_activity, x='keyboard_inputs', nbins=50, title="Keyboard Inputs Distribution",
+                                                  labels={'keyboard_inputs': 'Keyboard Inputs'},
+                                                  color_discrete_sequence=[color_palette[4]])
+        fig_user_activity_keyboard.update_layout(plot_bgcolor='white')
+        st.plotly_chart(fig_user_activity_keyboard, use_container_width=True, config={'displayModeBar': False})
 
     with tab3:
         st.header("Session Analysis")
         
-        # Mouse movements vs Keyboard inputs
-        fig_mouse_keyboard = px.scatter(sessions_df, x='mouse_movements', y='keyboard_inputs', 
-                                        color='is_bot', title="Mouse Movements vs Keyboard Inputs",
-                                        labels={'mouse_movements': 'Mouse Movements', 'keyboard_inputs': 'Keyboard Inputs'},
-                                        color_discrete_map={0: color_palette[0], 1: color_palette[1]})
-        fig_mouse_keyboard.update_layout(plot_bgcolor='white')
-        st.plotly_chart(fig_mouse_keyboard, use_container_width=True, config={'displayModeBar': False})
+        # Analyze session characteristics
+        session_characteristics = sessions_df[['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'is_bot']]
+        st.write(session_characteristics.describe())
         
-        st.markdown("""
-        <div class='stAlert'>
-        <strong>Insights:</strong>
-        <ul>
-        <li>Human users typically show a balance between mouse movements and keyboard inputs.</li>
-        <li>Bots might show unusual patterns, such as very high mouse movements with low keyboard inputs or vice versa.</li>
-        <li>Clusters in this plot can help identify different types of bot behavior.</li>
-        </ul>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("---")
         
-        # Time on page distribution
-        fig_time = px.histogram(sessions_df, x='time_on_page', color='is_bot', 
-                                title="Time on Page Distribution",
-                                labels={'time_on_page': 'Time on Page (seconds)', 'count': 'Number of Sessions'},
-                                color_discrete_map={0: color_palette[2], 1: color_palette[3]},
-                                barmode='overlay')
-        fig_time.update_layout(plot_bgcolor='white')
-        st.plotly_chart(fig_time, use_container_width=True, config={'displayModeBar': False})
+        # Feature importance from the model
+        feature_importances = model.feature_importances_
+        feature_names = session_characteristics.columns[:-1]
+        importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': feature_importances})
+        importance_df = importance_df.sort_values(by='Importance', ascending=False)
         
-        st.markdown("""
-        <div class='stAlert'>
-                    
-
-
-
-        <strong>Insights:</strong>
-        <ul>
-        <li>Human users typically spend varying amounts of time on a page, often following a normal distribution.</li>
-        <li>Bots might show very short page times or unusually long times.</li>
-        <li>This information can be crucial for setting thresholds in the passive CAPTCHA system.</li>
-        </ul>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.subheader("Session Data Sample")
-        st.dataframe(sessions_df.head(100))
+        fig_feature_importance = px.bar(importance_df, x='Feature', y='Importance', title="Feature Importance",
+                                        labels={'Feature': 'Feature', 'Importance': 'Importance'},
+                                        color_discrete_sequence=[color_palette[5]])
+        fig_feature_importance.update_layout(plot_bgcolor='white')
+        st.plotly_chart(fig_feature_importance, use_container_width=True, config={'displayModeBar': False})
 
     with tab4:
-        st.header("Machine Learning Insights")
+        st.header("ML Insights")
         
-        col1, col2 = st.columns(2)
+        st.subheader("Model Performance")
+        st.write("### Classification Report")
+        st.text(classification_report)
         
-        with col1:
-            st.subheader("Model Performance")
-            st.code(classification_report, language='text')
-        
-        with col2:
-            st.markdown("""
-            <div class='stAlert'>
-            <strong>Interpretation:</strong>
-            <ul>
-            <li>High precision reduces false positives, ensuring we don't wrongly label human users as bots.</li>
-            <li>High recall ensures we're catching most of the actual bot sessions.</li>
-            <li>The F1-score balances precision and recall, giving an overall measure of the model's performance.</li>
-            </ul>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.subheader("Feature Importance")
-        feature_importance = pd.DataFrame({
-            'feature': ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled'],
-            'importance': model.feature_importances_
-        }).sort_values('importance', ascending=False)
-        
-        fig_importance = px.bar(feature_importance, x='importance', y='feature', orientation='h',
-                                title="Feature Importance for Bot Detection",
-                                labels={'importance': 'Importance Score', 'feature': 'Feature'},
-                                color='importance',
-                                color_continuous_scale=px.colors.sequential.Viridis)
-        fig_importance.update_layout(plot_bgcolor='white')
-        st.plotly_chart(fig_importance, use_container_width=True, config={'displayModeBar': False})
-        
-        st.markdown("""
-        <div class='stAlert'>
-        <strong>Insights:</strong>
-        <ul>
-        <li>Features with high importance are the most crucial for distinguishing between bots and humans.</li>
-        <li>This information can guide further refinement of the passive CAPTCHA system, focusing on the most relevant features.</li>
-        <li>Less important features might be candidates for removal to simplify the model and improve performance.</li>
-        </ul>
-        </div>
-        """, unsafe_allow_html=True)
+        st.subheader("Model Usage")
+        st.write("To use this model for predictions, ensure you have the following features:")
+        st.write(" - mouse_movements")
+        st.write(" - keyboard_inputs")
+        st.write(" - time_on_page")
+        st.write(" - js_enabled")
 
-        st.subheader("Live Session Classification")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
-            keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
-        with col2:
-            time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
-            js_enabled = st.checkbox("JavaScript Enabled", value=True)
-
-        if st.button("Classify Session"):
-            input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, 
-                                    int(js_enabled)]])
-            prediction = model.predict(input_data)[0]
-            probability = model.predict_proba(input_data)[0][1]
-            
-            result_color = "#2ca02c" if prediction == 0 else "#d62728"
-            st.markdown(f"""
-            <div style='background-color: {result_color}; color: white; padding: 10px; border-radius: 5px;'>
-            <h3>Prediction: {'Human' if prediction == 0 else 'Bot'}</h3>
-            <p>Probability of being a bot: {probability:.2f}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("""
-            <div class='stAlert'>
-            <strong>Interpretation:</strong>
-            <ul>
-            <li>This tool allows you to input session data and see whether our model classifies it as a bot or human session.</li>
-            <li>The probability gives an idea of how confident the model is in its prediction.</li>
-            <li>Experimenting with different input values can help understand the model's decision boundaries.</li>
-            </ul>
-            </div>
-            """, unsafe_allow_html=True)
-
-    # Footer
-    st.sidebar.markdown("---")
-    st.sidebar.info("""
-    **Note:** This demo app showcases how to use machine learning for a passive CAPTCHA solution to differentiate between bots and human users. 
-    
-    In a real-world scenario, such a system would need to be thoroughly tested, regularly updated, and integrated with other security measures to ensure robust protection against bot attacks while maintaining a smooth user experience.
-    """)
+        # Example prediction
+        example_input = {
+            'mouse_movements': [500],
+            'keyboard_inputs': [300],
+            'time_on_page': [120],
+            'js_enabled': [1]
+        }
+        example_df = pd.DataFrame(example_input)
+        prediction = model.predict(example_df)[0]
+        st.write(f"Example Prediction: {'Bot' if prediction else 'Human'}")
 
 if __name__ == "__main__":
     main()
