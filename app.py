@@ -368,8 +368,9 @@ def main():
         </div>
         """, unsafe_allow_html=True)
 
+        # Live Session Classification
         st.subheader("Live Session Classification")
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
             keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
@@ -378,10 +379,12 @@ def main():
             js_enabled = st.checkbox("JavaScript Enabled", value=True)
         with col3:
             cookie_enabled = st.checkbox("Cookies Enabled", value=True)
-
+        with col4:
+            zoom_level = st.slider("Zoom Level", min_value=0, max_value=200, value=100)
+        
         if st.button("Classify Session"):
             input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, 
-                                    int(js_enabled), int(cookie_enabled)]])
+                                    int(js_enabled), int(cookie_enabled), zoom_level]])
             prediction = model.predict(input_data)[0]
             probability = model.predict_proba(input_data)[0][1]
             
@@ -399,7 +402,8 @@ def main():
             <ul>
             <li>This tool allows you to input session data and see whether our model classifies it as a bot or human session.</li>
             <li>The probability gives an idea of how confident the model is in its prediction.</li>
-            <li>Experimenting with different input values can help understand the model's decision boundaries.</li>
+            <li>Experimenting with different input values, including the new zoom level, can help understand the model's decision boundaries.</li>
+            <li>The zoom level might affect the model's decision, as it could be correlated with certain types of bot behaviors.</li>
             </ul>
             </div>
             """, unsafe_allow_html=True)
