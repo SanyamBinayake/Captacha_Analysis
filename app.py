@@ -409,5 +409,5 @@ def main():
     In a real-world scenario, such a system would need to be thoroughly tested, regularly updated, and integrated with other security measures to ensure robust protection against bot attacks while maintaining a smooth user experience.
     """)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
