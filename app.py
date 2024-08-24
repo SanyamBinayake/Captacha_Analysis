@@ -270,7 +270,7 @@ def main():
         """, unsafe_allow_html=True)
         
         st.subheader("User Data Sample")
-        st.dataframe(users_df.head(5))
+        st.dataframe(users_df.head(100))
 
     with tab3:
         st.header("Session Analysis")
@@ -319,7 +319,7 @@ def main():
         """, unsafe_allow_html=True)
         
         st.subheader("Session Data Sample")
-        st.dataframe(sessions_df.head(100))
+        st.dataframe(sessions_df.head(5))
 
     with tab4:
         st.header("Machine Learning Insights")
