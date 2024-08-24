@@ -107,6 +107,8 @@ def generate_session_data(users_df):
 @st.cache_resource
 # Update Train Model Function
 @st.cache_resource
+# Update Train Model Function
+@st.cache_resource
 def train_model(sessions_df):
     features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled', 'zoom_level']  # Include zoom_level
     X = sessions_df[features]
@@ -114,12 +116,21 @@ def train_model(sessions_df):
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    # Optionally, reduce complexity for faster training
+    model = RandomForestClassifier(n_estimators=50, max_depth=10, n_jobs=-1, random_state=42)
+    
+    import time
+    start_time = time.time()
     model.fit(X_train, y_train)
+    end_time = time.time()
+    
+    training_time = end_time - start_time
+    print(f"Model training completed in {training_time:.2f} seconds")
     
     y_pred = model.predict(X_test)
     
     return model, classification_report(y_test, y_pred)
+
 
 
 # Main app
