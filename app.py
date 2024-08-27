@@ -22,7 +22,7 @@ def generate_data():
 
 # Train ML model
 def train_model(data):
-    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled']
+    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page']
     X = data[features]
     y = data['is_bot']
     
@@ -56,13 +56,9 @@ def main():
         keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
     with col2:
         time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
-    with col3:
-        js_enabled = st.selectbox("JavaScript Enabled", [True, False])
-        cookie_enabled = st.selectbox("Cookies Enabled", [True, False])
     
     if st.button("Classify Session"):
-        input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, 
-                                int(js_enabled), int(cookie_enabled)]])
+        input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page]])
         prediction = model.predict(input_data)[0]
         probability = model.predict_proba(input_data)[0][1]
         
