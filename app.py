@@ -44,8 +44,8 @@ def main():
     data = generate_data()
     model, report = train_model(data)
     
-    st.subheader("Model Training Report")
-    st.text(report)
+    # st.subheader("Model Training Report")
+    # st.text(report)
     
     # User input for prediction
     st.subheader("Classify Session")
