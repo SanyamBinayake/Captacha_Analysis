@@ -260,7 +260,7 @@ def main():
             
             st.subheader("Model Performance")
             st.text(classification_report)
-                    st.subheader("Model Performance")
+            st.subheader("Model Performance")
             st.text(classification_report)
     
             # Model Feature Importance Visualization
