@@ -139,7 +139,7 @@ def main():
     sessions_df = sessions_df[(sessions_df['timestamp'].dt.date >= date_range[0]) & (sessions_df['timestamp'].dt.date <= date_range[1])]
 
     # Main content
-    tab0, tab1, tab2, tab3, tab4 = st.tabs(["Problem Statement", "Overview", "User Profiles", "Session Analysis", "ML Insights"])
+    tab4 = st.tabs(["ML Insights"])
 
     with tab0:
         st.header("Problem Statement")
