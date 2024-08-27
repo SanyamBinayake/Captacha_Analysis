@@ -110,7 +110,7 @@ def main():
     
     st.subheader("Feature Importance")
     feature_importance = pd.DataFrame({
-        'feature': ['mouse_movements', 'keyboard_inputs', 'time_on_page', 
+        'feature': ['mouse_movements', 'keyboard_inputs', 'time_on_page',] 
         'importance': model.feature_importances_
     }).sort_values('importance', ascending=False)
     
