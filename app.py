@@ -108,11 +108,11 @@ def main():
     #     </div>
     #     """, unsafe_allow_html=True)
     
-    # st.subheader("Feature Importance")
-    # feature_importance = pd.DataFrame({
-    #     'feature': ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled'],
-    #     'importance': model.feature_importances_
-    # }).sort_values('importance', ascending=False)
+    st.subheader("Feature Importance")
+    feature_importance = pd.DataFrame({
+        'feature': ['mouse_movements', 'keyboard_inputs', 'time_on_page', 
+        'importance': model.feature_importances_
+    }).sort_values('importance', ascending=False)
     
     # fig_importance = px.bar(feature_importance, x='importance', y='feature', orientation='h',
     #                         title="Feature Importance for Bot Detection",
@@ -140,13 +140,9 @@ def main():
         keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
     with col2:
         time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
-        js_enabled = st.checkbox("JavaScript Enabled", value=True)
-    with col3:
-        cookie_enabled = st.checkbox("Cookies Enabled", value=True)
 
     if st.button("Classify Session"):
-        input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, 
-                                int(js_enabled), int(cookie_enabled)]])
+        input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page]])
         prediction = model.predict(input_data)[0]
         probability = model.predict_proba(input_data)[0][1]
         
