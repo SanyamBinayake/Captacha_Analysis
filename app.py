@@ -11,7 +11,6 @@ st.set_page_config(page_title="Live Session Classification", layout="wide")
 
 # Generate sample data for training
 def generate_sample_data():
-    # Generate some synthetic data for demonstration
     np.random.seed(42)
     num_samples = 1000
     
