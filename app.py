@@ -92,49 +92,49 @@ def main():
     
     col1, col2 = st.columns(2)
     
-    with col1:
-        st.subheader("Model Performance")
-        st.code(classification_report_text, language='text')
+    # with col1:
+    #     st.subheader("Model Performance")
+    #     st.code(classification_report_text, language='text')
     
-    with col2:
-        st.markdown("""
-        <div class='stAlert'>
-        <strong>Interpretation:</strong>
-        <ul>
-        <li>High precision reduces false positives, ensuring we don't wrongly label human users as bots.</li>
-        <li>High recall ensures we're catching most of the actual bot sessions.</li>
-        <li>The F1-score balances precision and recall, giving an overall measure of the model's performance.</li>
-        </ul>
-        </div>
-        """, unsafe_allow_html=True)
+    # with col2:
+    #     st.markdown("""
+    #     <div class='stAlert'>
+    #     <strong>Interpretation:</strong>
+    #     <ul>
+    #     <li>High precision reduces false positives, ensuring we don't wrongly label human users as bots.</li>
+    #     <li>High recall ensures we're catching most of the actual bot sessions.</li>
+    #     <li>The F1-score balances precision and recall, giving an overall measure of the model's performance.</li>
+    #     </ul>
+    #     </div>
+    #     """, unsafe_allow_html=True)
     
-    st.subheader("Feature Importance")
-    feature_importance = pd.DataFrame({
-        'feature': ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled'],
-        'importance': model.feature_importances_
-    }).sort_values('importance', ascending=False)
+    # st.subheader("Feature Importance")
+    # feature_importance = pd.DataFrame({
+    #     'feature': ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled'],
+    #     'importance': model.feature_importances_
+    # }).sort_values('importance', ascending=False)
     
-    fig_importance = px.bar(feature_importance, x='importance', y='feature', orientation='h',
-                            title="Feature Importance for Bot Detection",
-                            labels={'importance': 'Importance Score', 'feature': 'Feature'},
-                            color='importance',
-                            color_continuous_scale=px.colors.sequential.Viridis)
-    fig_importance.update_layout(plot_bgcolor='white')
-    st.plotly_chart(fig_importance, use_container_width=True, config={'displayModeBar': False})
+    # fig_importance = px.bar(feature_importance, x='importance', y='feature', orientation='h',
+    #                         title="Feature Importance for Bot Detection",
+    #                         labels={'importance': 'Importance Score', 'feature': 'Feature'},
+    #                         color='importance',
+    #                         color_continuous_scale=px.colors.sequential.Viridis)
+    # fig_importance.update_layout(plot_bgcolor='white')
+    # st.plotly_chart(fig_importance, use_container_width=True, config={'displayModeBar': False})
     
-    st.markdown("""
-    <div class='stAlert'>
-    <strong>Insights:</strong>
-    <ul>
-    <li>Features with high importance are the most crucial for distinguishing between bots and humans.</li>
-    <li>This information can guide further refinement of the passive CAPTCHA system, focusing on the most relevant features.</li>
-    <li>Less important features might be candidates for removal to simplify the model and improve performance.</li>
-    </ul>
-    </div>
-    """, unsafe_allow_html=True)
+    # st.markdown("""
+    # <div class='stAlert'>
+    # <strong>Insights:</strong>
+    # <ul>
+    # <li>Features with high importance are the most crucial for distinguishing between bots and humans.</li>
+    # <li>This information can guide further refinement of the passive CAPTCHA system, focusing on the most relevant features.</li>
+    # <li>Less important features might be candidates for removal to simplify the model and improve performance.</li>
+    # </ul>
+    # </div>
+    # """, unsafe_allow_html=True)
 
-    st.subheader("Live Session Classification")
-    col1, col2, col3 = st.columns(3)
+    # st.subheader("Live Session Classification")
+    # col1, col2, col3 = st.columns(3)
     with col1:
         mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
         keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
