@@ -1,10 +1,14 @@
 import streamlit as st
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
 import joblib
 
-# Load the pre-trained model (ensure you have trained and saved it before running this)
-model = joblib.load('path_to_your_model.joblib')
+# Load the pre-trained model
+model_path = 'path_to_your_model.joblib'  # Update this path
+try:
+    model = joblib.load(model_path)
+except FileNotFoundError:
+    st.error(f"Model file not found at path: {model_path}")
+    st.stop()
 
 # Set up Streamlit app
 st.title("Live Session Classification")
