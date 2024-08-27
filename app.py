@@ -180,104 +180,104 @@ def main():
                 unsafe_allow_html=True
             )
 
-    with tab1:
-        st.header("Overview")
-        col1, col2, col3, col4 = st.columns(4)
+        with tab1:
+            st.header("Overview")
+            col1, col2, col3, col4 = st.columns(4)
         
-        with col1:
-            st.metric("Total Users", len(users_df))
-        with col2:
-            st.metric("Total Sessions", len(sessions_df))
-        with col3:
-            st.metric("Human Sessions", len(sessions_df[sessions_df['is_bot'] == 0]))
-        with col4:
-            st.metric("Bot Sessions", len(sessions_df[sessions_df['is_bot'] == 1]))
+            with col1:
+                st.metric("Total Users", len(users_df))
+            with col2:
+                st.metric("Total Sessions", len(sessions_df))
+            with col3:
+                st.metric("Human Sessions", len(sessions_df[sessions_df['is_bot'] == 0]))
+            with col4:
+                st.metric("Bot Sessions", len(sessions_df[sessions_df['is_bot'] == 1]))
         
-        st.markdown("---")
-        
-        # Sessions over time
-        fig_sessions = px.line(sessions_df.groupby(sessions_df['timestamp'].dt.date).size().reset_index(name='count'), 
+            st.markdown("---")
+            
+            # Sessions over time
+            fig_sessions = px.line(sessions_df.groupby(sessions_df['timestamp'].dt.date).size().reset_index(name='count'), 
                                x='timestamp', y='count', title="Sessions Over Time",
                                labels={'timestamp': 'Date', 'count': 'Number of Sessions'},
                                color_discrete_sequence=color_palette)
-        st.plotly_chart(fig_sessions, use_container_width=True)
+            st.plotly_chart(fig_sessions, use_container_width=True)
         
-    with tab2:
-        st.header("User Profiles")
-        fig_browsers = px.pie(users_df, names='browser', title="Browser Distribution", color_discrete_sequence=color_palette)
-        fig_os = px.pie(users_df, names='operating_system', title="Operating System Distribution", color_discrete_sequence=color_palette)
-        fig_resolution = px.pie(users_df, names='screen_resolution', title="Screen Resolution Distribution", color_discrete_sequence=color_palette)
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.plotly_chart(fig_browsers, use_container_width=True)
-        with col2:
-            st.plotly_chart(fig_os, use_container_width=True)
-        with col3:
-            st.plotly_chart(fig_resolution, use_container_width=True)
+        with tab2:
+            st.header("User Profiles")
+            fig_browsers = px.pie(users_df, names='browser', title="Browser Distribution", color_discrete_sequence=color_palette)
+            fig_os = px.pie(users_df, names='operating_system', title="Operating System Distribution", color_discrete_sequence=color_palette)
+            fig_resolution = px.pie(users_df, names='screen_resolution', title="Screen Resolution Distribution", color_discrete_sequence=color_palette)
             
-        st.markdown("---")
-        fig_language = px.pie(users_df, names='language', title="Language Distribution", color_discrete_sequence=color_palette)
-        st.plotly_chart(fig_language, use_container_width=True)
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.plotly_chart(fig_browsers, use_container_width=True)
+            with col2:
+                st.plotly_chart(fig_os, use_container_width=True)
+            with col3:
+                st.plotly_chart(fig_resolution, use_container_width=True)
+            
+            st.markdown("---")
+            fig_language = px.pie(users_df, names='language', title="Language Distribution", color_discrete_sequence=color_palette)
+            st.plotly_chart(fig_language, use_container_width=True)
 
-    with tab3:
-        st.header("Session Analysis")
-        st.markdown("### Mouse Movements Distribution")
-        fig_mouse = px.histogram(sessions_df, x='mouse_movements', nbins=50, title="Mouse Movements Distribution", color_discrete_sequence=color_palette)
-        st.plotly_chart(fig_mouse, use_container_width=True)
-        
-        st.markdown("### Keyboard Inputs Distribution")
-        fig_keyboard = px.histogram(sessions_df, x='keyboard_inputs', nbins=50, title="Keyboard Inputs Distribution", color_discrete_sequence=color_palette)
-        st.plotly_chart(fig_keyboard, use_container_width=True)
-        
-        st.markdown("### Time on Page Distribution")
-        fig_time = px.histogram(sessions_df, x='time_on_page', nbins=50, title="Time on Page Distribution", color_discrete_sequence=color_palette)
-        st.plotly_chart(fig_time, use_container_width=True)
-        
-    with tab4:
-        st.header("ML Insights")
-        
-        st.subheader("Live Session Classification")
-        st.markdown("**Predict if a new session is from a bot or a human user.**")
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            mouse_movements = st.number_input("Mouse Movements", min_value=0, value=50)
-        with col2:
-            keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, value=10)
-        with col3:
-            time_on_page = st.number_input("Time on Page (seconds)", min_value=1, value=60)
-        
-        user_input = pd.DataFrame({
-            'mouse_movements': [mouse_movements],
-            'keyboard_inputs': [keyboard_inputs],
-            'time_on_page': [time_on_page],
-        })
-        
-        prediction = model.predict(user_input)[0]
-        prediction_text = "Bot" if prediction == 1 else "Human"
-        st.markdown(f"### Prediction: **{prediction_text}**")
-        
-        st.subheader("Model Performance")
-        st.text(classification_report)
-                st.subheader("Model Performance")
-        st.text(classification_report)
-
-        # Model Feature Importance Visualization
-        st.subheader("Feature Importance")
-        feature_importances = model.feature_importances_
-        feature_names = ['Mouse Movements', 'Keyboard Inputs', 'Time on Page']
-        importance_df = pd.DataFrame({
-            'Feature': feature_names,
-            'Importance': feature_importances
-        }).sort_values(by='Importance', ascending=False)
-
-        fig_importance = px.bar(importance_df, x='Feature', y='Importance', 
-                                title="Feature Importance",
-                                labels={'Importance': 'Importance Score'},
-                                color='Feature',
-                                color_discrete_sequence=color_palette)
-        st.plotly_chart(fig_importance, use_container_width=True)
+        with tab3:
+            st.header("Session Analysis")
+            st.markdown("### Mouse Movements Distribution")
+            fig_mouse = px.histogram(sessions_df, x='mouse_movements', nbins=50, title="Mouse Movements Distribution", color_discrete_sequence=color_palette)
+            st.plotly_chart(fig_mouse, use_container_width=True)
+            
+            st.markdown("### Keyboard Inputs Distribution")
+            fig_keyboard = px.histogram(sessions_df, x='keyboard_inputs', nbins=50, title="Keyboard Inputs Distribution", color_discrete_sequence=color_palette)
+            st.plotly_chart(fig_keyboard, use_container_width=True)
+            
+            st.markdown("### Time on Page Distribution")
+            fig_time = px.histogram(sessions_df, x='time_on_page', nbins=50, title="Time on Page Distribution", color_discrete_sequence=color_palette)
+            st.plotly_chart(fig_time, use_container_width=True)
+            
+        with tab4:
+            st.header("ML Insights")
+            
+            st.subheader("Live Session Classification")
+            st.markdown("**Predict if a new session is from a bot or a human user.**")
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                mouse_movements = st.number_input("Mouse Movements", min_value=0, value=50)
+            with col2:
+                keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, value=10)
+            with col3:
+                time_on_page = st.number_input("Time on Page (seconds)", min_value=1, value=60)
+            
+            user_input = pd.DataFrame({
+                'mouse_movements': [mouse_movements],
+                'keyboard_inputs': [keyboard_inputs],
+                'time_on_page': [time_on_page],
+            })
+            
+            prediction = model.predict(user_input)[0]
+            prediction_text = "Bot" if prediction == 1 else "Human"
+            st.markdown(f"### Prediction: **{prediction_text}**")
+            
+            st.subheader("Model Performance")
+            st.text(classification_report)
+                    st.subheader("Model Performance")
+            st.text(classification_report)
+    
+            # Model Feature Importance Visualization
+            st.subheader("Feature Importance")
+            feature_importances = model.feature_importances_
+            feature_names = ['Mouse Movements', 'Keyboard Inputs', 'Time on Page']
+            importance_df = pd.DataFrame({
+                'Feature': feature_names,
+                'Importance': feature_importances
+            }).sort_values(by='Importance', ascending=False)
+    
+            fig_importance = px.bar(importance_df, x='Feature', y='Importance', 
+                                    title="Feature Importance",
+                                    labels={'Importance': 'Importance Score'},
+                                    color='Feature',
+                                    color_discrete_sequence=color_palette)
+            st.plotly_chart(fig_importance, use_container_width=True)
 
 if __name__ == "__main__":
     main()
