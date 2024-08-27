@@ -16,8 +16,6 @@ def generate_data():
         'mouse_movements': np.random.randint(0, 1000, num_records),
         'keyboard_inputs': np.random.randint(0, 500, num_records),
         'time_on_page': np.random.randint(0, 600, num_records),
-        'js_enabled': np.random.choice([True, False], num_records),
-        'cookie_enabled': np.random.choice([True, False], num_records),
         'is_bot': np.random.choice([0, 1], num_records)
     })
     return data
