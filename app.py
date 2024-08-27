@@ -1,10 +1,16 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 import joblib
+import random
+from faker import Faker
+
+# Initialize Faker
+fake = Faker()
+Faker.seed(0)
 
 # Set page config
 st.set_page_config(page_title="Live Session Classification", layout="wide")
@@ -57,6 +63,7 @@ def main():
         df = generate_sample_data()
         model, report = train_model(df)
         st.write("Model trained and saved.")
+        st.code(report, language='text')
     else:
         st.write("Pre-trained model loaded.")
 
@@ -91,7 +98,8 @@ def main():
         <strong>Interpretation:</strong>
         <ul>
         <li>This tool allows you to input session data and see whether our model classifies it as a bot or human session.</li>
-        <li>Adjust the inputs and click "Classify Session" to get real-time predictions based on the pre-trained model.</li>
+        <li>The probability gives an idea of how confident the model is in its prediction.</li>
+        <li>Experimenting with different input values can help understand the model's decision boundaries.</li>
         </ul>
         </div>
         """, unsafe_allow_html=True)
