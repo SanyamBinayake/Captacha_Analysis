@@ -146,11 +146,21 @@ def main():
         input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
         prediction = model.predict(input_data)[0]
         probability = model.predict_proba(input_data)[0][1]
+
+        # Threshold-based classification
+        if probability < 0.3:
+            classification = "Human"
+            result_color = "#2ca02c"  # Green
+        elif 0.3 <= probability <= 0.5:
+            classification = "Confused"
+            result_color = "#ff7f0e"  # Orange
+        else:
+            classification = "Bot"
+            result_color = "#d62728"  # Red
         
-        result_color = "#2ca02c" if prediction == 0 else "#d62728"
         st.markdown(f"""
         <div style='background-color: {result_color}; color: white; padding: 10px; border-radius: 5px;'>
-        <h3>Prediction: {'Human' if prediction == 0 else 'Bot'}</h3>
+        <h3>Prediction: {classification}</h3>
         <p>Probability of being a bot: {probability:.2f}</p>
         </div>
         """, unsafe_allow_html=True)
