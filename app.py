@@ -89,7 +89,6 @@ def generate_session_data(users_df):
         'keyboard_inputs': [generate_keyboard_inputs() for _ in range(num_sessions)],
         'time_on_page': [generate_time_on_page() for _ in range(num_sessions)],
         'js_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
-        'cookie_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
     })
     
     sessions['is_bot'] = ((sessions['mouse_movements'] > 500) | 
@@ -101,7 +100,7 @@ def generate_session_data(users_df):
 # Train ML model
 @st.cache_resource
 def train_model(sessions_df):
-    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled']
+    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled']
     X = sessions_df[features]
     y = sessions_df['is_bot']
     
@@ -141,10 +140,10 @@ def main():
         time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
         # Adding default values for the other features
         js_enabled = True  # Default value
-        cookie_enabled = True  # Default value
+
 
     if st.button("Classify Session"):
-        input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled), int(cookie_enabled)]])
+        input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
         prediction = model.predict(input_data)[0]
         probability = model.predict_proba(input_data)[0][1]
         
@@ -156,24 +155,9 @@ def main():
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("""
-        <div class='stAlert'>
-        <strong>Interpretation:</strong>
-        <ul>
-        <li>This tool allows you to input session data and see whether our model classifies it as a bot or human session.</li>
-        <li>The probability gives an idea of how confident the model is in its prediction.</li>
-        <li>Experimenting with different input values can help understand the model's decision boundaries.</li>
-        </ul>
-        </div>
-        """, unsafe_allow_html=True)
+       
 
-    # Footer
-    st.sidebar.markdown("---")
-    st.sidebar.info("""
-    **Note:** This demo app showcases how to use machine learning for a passive CAPTCHA solution to differentiate between bots and human users. 
-    
-    In a real-world scenario, such a system would need to be thoroughly tested, regularly updated, and integrated with other security measures to ensure robust protection against bot attacks while maintaining a smooth user experience.
-    """)
+   
 
 if __name__ == "__main__":
     main()
