@@ -1,19 +1,62 @@
 import streamlit as st
-import pandas as pd
+from fastapi import FastAPI, Request
+from pydantic import BaseModel
 import numpy as np
-import plotly.express as px
-from faker import Faker
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 import joblib
+import threading
+import uvicorn
+import pandas as pd
 import random
+from faker import Faker
 
-# Set page config
+# Initialize Faker
+fake = Faker()
+
+# Set the number of records to generate
+num_users = 1000
+num_sessions = 5000
+
+# Define FastAPI app
+app = FastAPI()
+
+# Define a data model for incoming requests
+class UserData(BaseModel):
+    mouse_movements: list
+    keystrokes: list
+    aadharNumber: str
+
+# Define a FastAPI route to accept data
+@app.post("/predict/")
+async def predict(data: UserData):
+    # Extract features from the incoming data
+    mouse_movements = len(data.mouse_movements)
+    keyboard_inputs = len(data.keystrokes)
+    time_on_page = max(m['timestamp'] for m in data.mouse_movements) - min(m['timestamp'] for m in data.mouse_movements)
+    js_enabled = True  # Assuming JS is always enabled for simplicity
+
+    # Prepare input data for the model
+    input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
+    
+    # Load the trained model (assuming it's saved as 'model.pkl')
+    model = joblib.load('model.pkl')
+    
+    # Make a prediction
+    prediction = model.predict(input_data)[0]
+    
+    return {"signal": prediction}
+
+# Integrate FastAPI with Streamlit
+def run_fastapi():
+    uvicorn.run(app, host="127.0.0.1", port=8000)
+
+# Start FastAPI in a separate thread
+threading.Thread(target=run_fastapi).start()
+
+# Streamlit part of the application
 st.set_page_config(page_title="ML-Enhanced Passive CAPTCHA Solution", layout="wide")
-
-# Set a consistent color palette
-color_palette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
 # Custom CSS
 st.markdown("""
@@ -49,13 +92,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize Faker
-fake = Faker()
-Faker.seed(0)
-
-# Set the number of records to generate
-num_users = 1000
-num_sessions = 5000
+st.title("ML-Enhanced Passive CAPTCHA Solution for UIDAI")
 
 # Generate User Data
 @st.cache_data
@@ -111,12 +148,13 @@ def train_model(sessions_df):
     
     y_pred = model.predict(X_test)
     
+    # Save the model
+    joblib.dump(model, 'model.pkl')
+    
     return model, classification_report(y_test, y_pred)
 
-# Main app
+# Main Streamlit app
 def main():
-    st.title("ML-Enhanced Passive CAPTCHA Solution for UIDAI")
-   
     # Generate data
     users_df = generate_user_data()
     sessions_df = generate_session_data(users_df)
@@ -126,33 +164,24 @@ def main():
     
     st.subheader("Live Session Classification")
     col1, col2, col3 = st.columns(3)
+    
     with col1:
         mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
         keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
+    
     with col2:
         time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
-        # Adding default values for the other features
         js_enabled = True  # Default value
-
+    
     if st.button("Classify Session"):
         input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
         prediction = model.predict(input_data)[0]
         probability = model.predict_proba(input_data)[0][1]
-
-        # Define the thresholds
-        if probability < 0.3:
-            result_text = "Human"
-            result_color = "#2ca02c"
-        elif 0.3 <= probability <= 0.5:
-            result_text = "Confused (Human/Bot)"
-            result_color = "#ff7f0e"
-        else:
-            result_text = "Bot"
-            result_color = "#d62728"
         
+        result_color = "#2ca02c" if prediction == 0 else "#d62728"
         st.markdown(f"""
         <div style='background-color: {result_color}; color: white; padding: 10px; border-radius: 5px;'>
-        <h3>Prediction: {result_text}</h3>
+        <h3>Prediction: {'Human' if prediction == 0 else 'Bot'}</h3>
         <p>Probability of being a bot: {probability:.2f}</p>
         </div>
         """, unsafe_allow_html=True)
