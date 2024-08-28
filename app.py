@@ -1,16 +1,12 @@
 import streamlit as st
-from fastapi import FastAPI, Request
-from pydantic import BaseModel
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 import joblib
-import threading
-import uvicorn
 import pandas as pd
 import random
 from faker import Faker
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
 # Initialize Faker
 fake = Faker()
@@ -19,46 +15,10 @@ fake = Faker()
 num_users = 1000
 num_sessions = 5000
 
-# Define FastAPI app
-app = FastAPI()
-
-# Define a data model for incoming requests
-class UserData(BaseModel):
-    mouse_movements: list
-    keystrokes: list
-    aadharNumber: str
-
-# Define a FastAPI route to accept data
-@app.post("/predict/")
-async def predict(data: UserData):
-    # Extract features from the incoming data
-    mouse_movements = len(data.mouse_movements)
-    keyboard_inputs = len(data.keystrokes)
-    time_on_page = max(m['timestamp'] for m in data.mouse_movements) - min(m['timestamp'] for m in data.mouse_movements)
-    js_enabled = True  # Assuming JS is always enabled for simplicity
-
-    # Prepare input data for the model
-    input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
-    
-    # Load the trained model (assuming it's saved as 'model.pkl')
-    model = joblib.load('model.pkl')
-    
-    # Make a prediction
-    prediction = model.predict(input_data)[0]
-    
-    return {"signal": prediction}
-
-# Integrate FastAPI with Streamlit
-def run_fastapi():
-    uvicorn.run(app, host="127.0.0.1", port=8000)
-
-# Start FastAPI in a separate thread
-threading.Thread(target=run_fastapi).start()
-
-# Streamlit part of the application
+# Streamlit page configuration
 st.set_page_config(page_title="ML-Enhanced Passive CAPTCHA Solution", layout="wide")
 
-# Custom CSS
+# Custom CSS for styling
 st.markdown("""
 <style>
     .reportview-container {
