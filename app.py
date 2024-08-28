@@ -124,13 +124,6 @@ def main():
     # Train ML model
     model, classification_report_text = train_model(sessions_df)
     
-   
-        
-    col1, col2 = st.columns(2)
-
-    
- 
-
     st.subheader("Live Session Classification")
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -141,33 +134,28 @@ def main():
         # Adding default values for the other features
         js_enabled = True  # Default value
 
-
     if st.button("Classify Session"):
-    input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
-    prediction = model.predict(input_data)[0]
-    probability = model.predict_proba(input_data)[0][1]
+        input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
+        prediction = model.predict(input_data)[0]
+        probability = model.predict_proba(input_data)[0][1]
 
-    # Define the thresholds
-    if probability < 0.3:
-        result_text = "Human"
-        result_color = "#2ca02c"
-    elif 0.3 <= probability <= 0.5:
-        result_text = "Confused (Human/Bot)"
-        result_color = "#ff7f0e"
-    else:
-        result_text = "Bot"
-        result_color = "#d62728"
-    
-    st.markdown(f"""
-    <div style='background-color: {result_color}; color: white; padding: 10px; border-radius: 5px;'>
-    <h3>Prediction: {result_text}</h3>
-    <p>Probability of being a bot: {probability:.2f}</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-       
-
-   
+        # Define the thresholds
+        if probability < 0.3:
+            result_text = "Human"
+            result_color = "#2ca02c"
+        elif 0.3 <= probability <= 0.5:
+            result_text = "Confused (Human/Bot)"
+            result_color = "#ff7f0e"
+        else:
+            result_text = "Bot"
+            result_color = "#d62728"
+        
+        st.markdown(f"""
+        <div style='background-color: {result_color}; color: white; padding: 10px; border-radius: 5px;'>
+        <h3>Prediction: {result_text}</h3>
+        <p>Probability of being a bot: {probability:.2f}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
