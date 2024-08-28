@@ -133,7 +133,7 @@ def main():
     # Filter data based on sidebar inputs
     sessions_df = sessions_df[(sessions_df['timestamp'].dt.date >= date_range[0]) & (sessions_df['timestamp'].dt.date <= date_range[1])]
 
-   tab4 = st.tabs(["ML Insights"])
+    tab4 = st.tabs(["ML Insights"])
 
    
     with tab4:
