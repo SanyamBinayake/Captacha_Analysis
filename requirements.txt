@@ -8,6 +8,5 @@ faker
 torch
 fastapi
 pydantic
-threading
 uvicorn
 random
