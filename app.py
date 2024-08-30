@@ -72,13 +72,13 @@ def generate_user_data():
 @st.cache_data
 def generate_session_data(users_df):
     def generate_mouse_movements():
-        return random.randint(0, 100) if random.random() < 0.9 else random.randint(500, 1000)
+        return random.randint(0, 100) if random.random() < 0.7 else random.randint(150, 500)
 
     def generate_keyboard_inputs():
-        return random.randint(0, 50) if random.random() < 0.9 else random.randint(200, 500)
+        return random.randint(0, 50) if random.random() < 0.7 else random.randint(100, 200)
 
     def generate_time_on_page():
-        return random.randint(5, 300) if random.random() < 0.9 else random.randint(1, 5)
+        return random.randint(5, 300) if random.random() < 0.7 else random.randint(5, 20)
 
     sessions = pd.DataFrame({
         'session_id': range(1, num_sessions + 1),
@@ -91,9 +91,9 @@ def generate_session_data(users_df):
         'js_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
     })
     
-    sessions['is_bot'] = ((sessions['mouse_movements'] > 500) | 
-                          (sessions['keyboard_inputs'] > 200) | 
-                          (sessions['time_on_page'] < 5)).astype(int)
+    sessions['is_bot'] = ((sessions['mouse_movements'] > 200) | 
+                          (sessions['keyboard_inputs'] > 100) | 
+                          (sessions['time_on_page'] < 20)).astype(int)
     
     return sessions
 
@@ -106,7 +106,7 @@ def train_model(sessions_df):
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model = RandomForestClassifier(n_estimators=200, max_depth=10, random_state=42)
     model.fit(X_train, y_train)
     
     y_pred = model.predict(X_test)
@@ -127,11 +127,10 @@ def main():
     st.subheader("Live Session Classification")
     col1, col2, col3 = st.columns(3)
     with col1:
-        mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
-        keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
+        mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=150)
+        keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=100)
     with col2:
-        time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
-        # Adding default values for the other features
+        time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=20)
         js_enabled = True  # Default value
 
     if st.button("Classify Session"):
