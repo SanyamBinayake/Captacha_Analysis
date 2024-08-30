@@ -113,6 +113,7 @@ def train_model(sessions_df):
 
 # Main app
 # Main app
+# Main app
 def main():
     st.title("ML-Enhanced Passive CAPTCHA Solution for UIDAI")
     # Generate data
@@ -158,12 +159,12 @@ def main():
                 The system has classified this session as a **Bot**.
                 Probability of being a bot: {prediction_proba:.2f}
             """)
-         st.markdown("""
-            ---
-            ### Model Performance
-            """)
-            st.text_area("Model Classification Report", classification_report, height=200)
 
+        st.markdown("""
+        ---
+        ### Model Performance
+        """)
+        st.text_area("Model Classification Report", classification_report, height=200)
 
 
 # Run the main app function
