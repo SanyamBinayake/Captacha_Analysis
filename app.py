@@ -71,16 +71,12 @@ def train_model(sessions_df):
     y_pred = model.predict(X_test)
     y_prob = model.predict_proba(X_test)[:, 1]
     
-    mse = mean_squared_error(y_test, y_prob)
-    r2 = r2_score(y_test, y_prob)
     auc = roc_auc_score(y_test, y_prob)
     precision = precision_score(y_test, y_pred)
     recall = recall_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred)
     
     metrics = {
-        "MSE": mse,
-        "R2": r2,
         "AUC": auc,
         "Precision": precision,
         "Recall": recall,
@@ -107,8 +103,6 @@ def main():
 
             # Display metrics
             st.subheader("Model Performance Metrics")
-            st.write(f"Mean Squared Error: {metrics['MSE']:.2f}")
-            st.write(f"R^2 Score: {metrics['R2']:.2f}")
             st.write(f"AUC Score: {metrics['AUC']:.2f}")
             st.write(f"Precision: {metrics['Precision']:.2f}")
             st.write(f"Recall: {metrics['Recall']:.2f}")
