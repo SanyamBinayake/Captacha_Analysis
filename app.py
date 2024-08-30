@@ -114,20 +114,12 @@ def train_model(sessions_df):
 # Main app
 def main():
     st.title("ML-Enhanced Passive CAPTCHA Solution for UIDAI")
-    st.sidebar.title("Settings")
-    date_range = st.sidebar.date_input("Select Date Range", 
-                                       [pd.Timestamp.now() - pd.Timedelta(days=30), pd.Timestamp.now()],
-                                       min_value=pd.Timestamp.now() - pd.Timedelta(days=365),
-                                       max_value=pd.Timestamp.now())
     # Generate data
     users_df = generate_user_data()
     sessions_df = generate_session_data(users_df)
     
     # Train ML model
     model, classification_report = train_model(sessions_df)
-    
-    # Filter data based on sidebar inputs
-    sessions_df = sessions_df[(sessions_df['timestamp'].dt.date >= date_range[0]) & (sessions_df['timestamp'].dt.date <= date_range[1])]
 
     # Main content
     st.subheader("Live Session Classification")
