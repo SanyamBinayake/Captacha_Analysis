@@ -29,7 +29,7 @@ st.markdown("""
     .small-input .stNumberInput input {
     padding: 5px;
     font-size: 12px;
-    width: 100px;
+    width: 50px;
 }
     .stAlert {
         background-color: #e6f3ff;
