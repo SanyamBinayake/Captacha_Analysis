@@ -1,22 +1,19 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
 from faker import Faker
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix, classification_report
-import joblib
-import random
+from sklearn.metrics import classification_report
+import plotly.express as px
 
-# Set page config
+# Set page configuration
 st.set_page_config(page_title="ML-Enhanced Passive CAPTCHA Solution", layout="wide")
 
 # Set a consistent color palette
 color_palette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
-# Custom CSS
+# Custom CSS for styling
 st.markdown("""
 <style>
     .reportview-container {
@@ -217,16 +214,13 @@ def main():
             input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
             prediction_proba = model.predict_proba(input_data)[0][1]
             
-            st.subheader("Prediction Result")
             if prediction_proba < 0.3:
-                st.metric(label="Prediction", value="Human", delta=f"Confidence: {prediction_proba:.2f}")
-                st.balloons()
+                st.success(f"Classification: **Human** ({prediction_proba:.2f} probability of being a bot)")
             elif 0.3 <= prediction_proba <= 0.7:
-                st.metric(label="Prediction", value="Confused", delta=f"Confidence: {prediction_proba:.2f}")
-                st.warning("The model is unsure. This might require further investigation.")
+                st.warning(f"Classification: **Confused** ({prediction_proba:.2f} probability of being a bot)")
             else:
-                st.metric(label="Prediction", value="Bot", delta=f"Confidence: {prediction_proba:.2f}")
-                st.error("Potential bot detected!")
+                st.error(f"Classification: **Bot** ({prediction_proba:.2f} probability of being a bot)")
 
-if __name__ == "__main__":
+# Run the main app function
+if __name__ == '__main__':
     main()
