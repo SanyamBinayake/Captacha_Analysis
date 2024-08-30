@@ -26,6 +26,11 @@ st.markdown("""
     h1, h2, h3 {
         color: #1f77b4;
     }
+    .small-input .stNumberInput input {
+    padding: 5px;
+    font-size: 12px;
+    width: 100px;
+}
     .stAlert {
         background-color: #e6f3ff;
         border: 1px solid #1f77b4;
@@ -127,11 +132,16 @@ def main():
     st.subheader("Live Session Classification")
     
     col1, col2 = st.columns(2)
+    
     with col1:
+        st.markdown('<div class="small-input">', unsafe_allow_html=True)
         mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
         keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
+        st.markdown('</div>', unsafe_allow_html=True)
     with col2:
+        st.markdown('<div class="small-input">', unsafe_allow_html=True)
         time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
+        st.markdown('</div>', unsafe_allow_html=True)
         js_enabled = True  # JavaScript enabled by default
 
     if st.button("Classify Session"):
