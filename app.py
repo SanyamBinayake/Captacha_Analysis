@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from faker import Faker
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
@@ -52,53 +51,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize Faker
-fake = Faker()
-Faker.seed(0)
-
-# Set the number of records to generate
-num_users = 1000
-num_sessions = 5000
-
-# Generate User Data
+# Load data from CSV file
 @st.cache_data
-def generate_user_data():
-    return pd.DataFrame({
-        'user_id': range(1, num_users + 1),
-        'browser': [random.choice(['Chrome', 'Firefox', 'Safari', 'Edge']) for _ in range(num_users)],
-        'operating_system': [random.choice(['Windows', 'MacOS', 'Linux', 'iOS', 'Android']) for _ in range(num_users)],
-        'screen_resolution': [random.choice(['1920x1080', '1366x768', '1440x900', '2560x1440']) for _ in range(num_users)],
-        'language': [random.choice(['en-US', 'es-ES', 'fr-FR', 'de-DE', 'zh-CN']) for _ in range(num_users)],
-    })
-
-# Generate Session Data
-@st.cache_data
-def generate_session_data(users_df):
-    def generate_mouse_movements():
-        return random.randint(0, 100) if random.random() < 0.9 else random.randint(500, 1000)
-
-    def generate_keyboard_inputs():
-        return random.randint(0, 50) if random.random() < 0.9 else random.randint(200, 500)
-
-    def generate_time_on_page():
-        return random.randint(5, 300) if random.random() < 0.9 else random.randint(1, 5)
-
-    sessions = pd.DataFrame({
-        'session_id': range(1, num_sessions + 1),
-        'user_id': [random.choice(users_df['user_id']) for _ in range(num_sessions)],
-        'timestamp': [fake.date_time_this_year() for _ in range(num_sessions)],
-        'ip_address': [fake.ipv4() for _ in range(num_sessions)],
-        'mouse_movements': [generate_mouse_movements() for _ in range(num_sessions)],
-        'keyboard_inputs': [generate_keyboard_inputs() for _ in range(num_sessions)],
-        'time_on_page': [generate_time_on_page() for _ in range(num_sessions)],
-        'js_enabled': [True for _ in range(num_sessions)],  # JavaScript enabled by default
-    })
-    
-    sessions['is_bot'] = ((sessions['mouse_movements'] > 500) | 
-                          (sessions['keyboard_inputs'] > 200) | 
-                          (sessions['time_on_page'] < 5)).astype(int)
-    
-    return sessions
+def load_data(file):
+    return pd.read_csv(file)
 
 # Train ML model
 @st.cache_resource
@@ -117,61 +73,67 @@ def train_model(sessions_df):
     return model, classification_report(y_test, y_pred)
 
 # Main app
-# Main app
-# Main app
 def main():
     st.title("ML-Enhanced Passive CAPTCHA Solution for UIDAI")
-    # Generate data
-    users_df = generate_user_data()
-    sessions_df = generate_session_data(users_df)
-    
-    # Train ML model
-    model, classification_report = train_model(sessions_df)
 
-    # Main content
-    st.subheader("Live Session Classification")
+    # Directly load the CSV file
+    file_name = 'generated_data.csv'
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown('<div class="small-input">', unsafe_allow_html=True)
-        mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
-        keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
-        st.markdown('</div>', unsafe_allow_html=True)
-    with col2:
-        st.markdown('<div class="small-input">', unsafe_allow_html=True)
-        time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
-        st.markdown('</div>', unsafe_allow_html=True)
-        js_enabled = True  # JavaScript enabled by default
+    try:
+        sessions_df = load_data(file_name)
 
-    if st.button("Classify Session"):
-        input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
-        prediction_proba = model.predict_proba(input_data)[0][1]
-        
-        if prediction_proba < 0.3:
-            st.success(f"""
-                *Classification: Human*
+        # Ensure the necessary columns are present
+        required_columns = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'is_bot']
+        if all(col in sessions_df.columns for col in required_columns):
+            # Train ML model
+            model, classification_report_str = train_model(sessions_df)
+
+            # Main content
+            st.subheader("Live Session Classification")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown('<div class="small-input">', unsafe_allow_html=True)
+                mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
+                keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
+                st.markdown('</div>', unsafe_allow_html=True)
+            with col2:
+                st.markdown('<div class="small-input">', unsafe_allow_html=True)
+                time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
+                st.markdown('</div>', unsafe_allow_html=True)
+                js_enabled = True  # JavaScript enabled by default
+
+            if st.button("Classify Session"):
+                input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
+                prediction_proba = model.predict_proba(input_data)[0][1]
                 
-                The system has classified this session as a *Human*.
-                Probability of being a bot: {prediction_proba:.2f}
-            """)
-        elif 0.3 <= prediction_proba <= 0.7:
-            st.warning(f"""
-                *Classification: Confused*
-                
-                The system is unsure whether this session is a bot or a human.
-                Probability of being a bot: {prediction_proba:.2f}
-            """)
+                if prediction_proba < 0.3:
+                    st.success(f"""
+                        **Classification: Human**
+                        
+                        The system has classified this session as a **Human**.
+                        Probability of being a bot: {prediction_proba:.2f}
+                    """)
+                elif 0.3 <= prediction_proba <= 0.7:
+                    st.warning(f"""
+                        **Classification: Confused**
+                        
+                        The system is unsure whether this session is a bot or a human.
+                        Probability of being a bot: {prediction_proba:.2f}
+                    """)
+                else:
+                    st.error(f"""
+                        **Classification: Bot**
+                        
+                        The system has classified this session as a **Bot**.
+                        Probability of being a bot: {prediction_proba:.2f}
+                    """)
         else:
-            st.error(f"""
-                *Classification: Bot*
-                
-                The system has classified this session as a *Bot*.
-                Probability of being a bot: {prediction_proba:.2f}
-            """)
+            st.error("The uploaded CSV file does not contain the required columns.")
+    except FileNotFoundError:
+        st.error(f"The file {file_name} was not found. Please make sure the file is in the correct directory.")
 
-
-
-# Run the main app function
 if __name__ == '__main__':
     main()
+
