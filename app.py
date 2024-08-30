@@ -68,10 +68,6 @@ def main():
     # Display metrics
     st.subheader("Model Performance Metrics")
     st.write(f"Accuracy: {metrics['Accuracy']:.2f}")
-    st.write(f"AUC Score: {metrics['AUC']:.2f}")
-    st.write(f"Precision: {metrics['Precision']:.2f}")
-    st.write(f"Recall: {metrics['Recall']:.2f}")
-    st.write(f"F1 Score: {metrics['F1 Score']:.2f}")
 
     # Main content
     st.subheader("Live Session Classification")
