@@ -112,6 +112,7 @@ def train_model(sessions_df):
     return model, classification_report(y_test, y_pred)
 
 # Main app
+# Main app
 def main():
     st.title("ML-Enhanced Passive CAPTCHA Solution for UIDAI")
     # Generate data
@@ -123,6 +124,7 @@ def main():
 
     # Main content
     st.subheader("Live Session Classification")
+    
     col1, col2 = st.columns(2)
     with col1:
         mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
@@ -131,16 +133,38 @@ def main():
         time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
         js_enabled = True  # JavaScript enabled by default
 
-        if st.button("Classify Session"):
-            input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
-            prediction_proba = model.predict_proba(input_data)[0][1]
-            
-            if prediction_proba < 0.3:
-                st.success(f"Classification: **Human** ({prediction_proba:.2f} probability of being a bot)")
-            elif 0.3 <= prediction_proba <= 0.7:
-                st.warning(f"Classification: **Confused** ({prediction_proba:.2f} probability of being a bot)")
-            else:
-                st.error(f"Classification: **Bot** ({prediction_proba:.2f} probability of being a bot)")
+    if st.button("Classify Session"):
+        input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
+        prediction_proba = model.predict_proba(input_data)[0][1]
+        
+        if prediction_proba < 0.3:
+            st.success(f"""
+                **Classification: Human**
+                
+                The system has classified this session as a **Human**.
+                Probability of being a bot: {prediction_proba:.2f}
+            """)
+        elif 0.3 <= prediction_proba <= 0.7:
+            st.warning(f"""
+                **Classification: Confused**
+                
+                The system is unsure whether this session is a bot or a human.
+                Probability of being a bot: {prediction_proba:.2f}
+            """)
+        else:
+            st.error(f"""
+                **Classification: Bot**
+                
+                The system has classified this session as a **Bot**.
+                Probability of being a bot: {prediction_proba:.2f}
+            """)
+
+        st.markdown("""
+        ---
+        ### Model Performance
+        """)
+        st.text_area("Model Classification Report", classification_report, height=200)
+
 
 # Run the main app function
 if __name__ == '__main__':
