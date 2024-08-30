@@ -133,14 +133,14 @@ def main():
     sessions_df = sessions_df[(sessions_df['timestamp'].dt.date >= date_range[0]) & (sessions_df['timestamp'].dt.date <= date_range[1])]
 
     # Main content
-        st.subheader("Live Session Classification")
-        col1, col2 = st.columns(2)
-        with col1:
-            mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
-            keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
-        with col2:
-            time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
-            js_enabled = True  # JavaScript enabled by default
+    st.subheader("Live Session Classification")
+    col1, col2 = st.columns(2)
+    with col1:
+        mouse_movements = st.number_input("Mouse Movements", min_value=0, max_value=1000, value=50)
+        keyboard_inputs = st.number_input("Keyboard Inputs", min_value=0, max_value=500, value=20)
+    with col2:
+        time_on_page = st.number_input("Time on Page (seconds)", min_value=0, max_value=600, value=60)
+        js_enabled = True  # JavaScript enabled by default
 
         if st.button("Classify Session"):
             input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
