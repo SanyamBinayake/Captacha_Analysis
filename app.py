@@ -159,10 +159,10 @@ def main():
                 Probability of being a bot: {prediction_proba:.2f}
             """)
          st.markdown("""
-        ---
-        ### Model Performance
-        """)
-        st.text_area("Model Classification Report", classification_report, height=200)
+            ---
+            ### Model Performance
+            """)
+            st.text_area("Model Classification Report", classification_report, height=200)
 
 
 
