@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
 import plotly.express as px
 
 # Set page configuration
@@ -65,12 +65,15 @@ def train_model(sessions_df):
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
     model.fit(X_train, y_train)
     
     y_pred = model.predict(X_test)
     
-    return model, classification_report(y_test, y_pred)
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+    
+    return model, mse, r2
 
 # Main app
 def main():
@@ -86,7 +89,7 @@ def main():
         required_columns = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'is_bot']
         if all(col in sessions_df.columns for col in required_columns):
             # Train ML model
-            model, classification_report_str = train_model(sessions_df)
+            model, mse, r2 = train_model(sessions_df)
 
             # Main content
             st.subheader("Live Session Classification")
@@ -106,7 +109,7 @@ def main():
 
             if st.button("Classify Session"):
                 input_data = np.array([[mouse_movements, keyboard_inputs, time_on_page, int(js_enabled)]])
-                prediction_proba = model.predict_proba(input_data)[0][1]
+                prediction_proba = model.predict(input_data)[0]
                 
                 if prediction_proba < 0.3:
                     st.success(f"""
@@ -136,4 +139,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
