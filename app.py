@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, roc_auc_score, precision_score, recall_score, f1_score
+from sklearn.metrics import classification_report, roc_auc_score, precision_score, recall_score, f1_score, accuracy_score
 import plotly.express as px
 
 # Set page configuration
@@ -71,12 +71,14 @@ def train_model(sessions_df):
     y_pred = model.predict(X_test)
     y_prob = model.predict_proba(X_test)[:, 1]
     
+    accuracy = accuracy_score(y_test, y_pred)
     auc = roc_auc_score(y_test, y_prob)
     precision = precision_score(y_test, y_pred)
     recall = recall_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred)
     
     metrics = {
+        "Accuracy": accuracy,
         "AUC": auc,
         "Precision": precision,
         "Recall": recall,
@@ -103,6 +105,7 @@ def main():
 
             # Display metrics
             st.subheader("Model Performance Metrics")
+            st.write(f"Accuracy: {metrics['Accuracy']:.2f}")
             st.write(f"AUC Score: {metrics['AUC']:.2f}")
             st.write(f"Precision: {metrics['Precision']:.2f}")
             st.write(f"Recall: {metrics['Recall']:.2f}")
