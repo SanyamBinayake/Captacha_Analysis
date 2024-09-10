@@ -141,7 +141,43 @@ def main():
 
     with tab0:
         st.header("Problem Statement")
-        # The rest of the content for tab0 goes here...
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.markdown(
+                f"""
+                <div style='background-color: #E6F3FF; padding: 20px; border-radius: 10px;'>
+                <h3 style='color: #1f77b4;'>Quick Info</h3>
+                <p><strong>ID:</strong> 1672</p>
+                <p><strong>Organization:</strong> Ministry of Electronics and Information Technology</p>
+                <p><strong>Department:</strong> Co-ordination Division</p>
+                <p><strong>Category:</strong> Software</p>
+                <p><strong>Theme:</strong> Smart Automation</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        
+        with col2:
+            st.markdown(
+                f"""
+                <div style='background-color: #FFF5E6; padding: 20px; border-radius: 10px;'>
+                <h3 style='color: #ff7f0e;'>Develop a ML Model based solution to refine CAPTCHA</h3>
+                <h4 style='color: #ff7f0e;'>Background:</h4>
+                <p>UIDAI aims to remove traditional CAPTCHA from its portals to improve user experience. Instead, a passive solution is needed to differentiate between bots and human users.</p>
+                <h4 style='color: #ff7f0e;'>Key Requirements:</h4>
+                <ul>
+                <li>Develop a passive approach using environmental parameters and AI/ML.</li>
+                <li>Capture browser context and analyze with backend ML models.</li>
+                <li>Protect backend APIs from DoS/DDoS vulnerabilities.</li>
+                <li>Minimize human interaction for better user experience.</li>
+                <li>Ensure compliance with UIDAI's privacy policies.</li>
+                </ul>
+                <h4 style='color: #ff7f0e;'>Expected Solution:</h4>
+                <p>A complete solution with frontend and backend design, corresponding code, and ML model to demonstrate the passive CAPTCHA approach.</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
     with tab1:
         st.header("Overview")
