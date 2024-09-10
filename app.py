@@ -145,7 +145,59 @@ def main():
 
     with tab1:
         st.header("Overview")
-        # The rest of the content for tab1 goes here...
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Total Users", len(users_df))
+        with col2:
+            st.metric("Total Sessions", len(sessions_df))
+        with col3:
+            st.metric("Human Sessions", len(sessions_df[sessions_df['is_bot'] == 0]))
+        with col4:
+            st.metric("Bot Sessions", len(sessions_df[sessions_df['is_bot'] == 1]))
+        
+        st.markdown("---")
+        
+        # Sessions over time
+        fig_sessions = px.line(sessions_df.groupby(sessions_df['timestamp'].dt.date).size().reset_index(name='count'), 
+                               x='timestamp', y='count', title="Sessions Over Time",
+                               labels={'timestamp': 'Date', 'count': 'Number of Sessions'},
+                               color_discrete_sequence=[color_palette[0]])
+        fig_sessions.update_layout(plot_bgcolor='white')
+        st.plotly_chart(fig_sessions, use_container_width=True, config={'displayModeBar': False})
+        
+        st.markdown("""
+        <div class='stAlert'>
+        <strong>Insights:</strong>
+        <ul>
+        <li>Look for unusual patterns or spikes in activity that might indicate bot attacks.</li>
+        <li>Regular patterns might represent normal human traffic patterns.</li>
+        <li>Sudden drops could suggest technical issues or changes in bot behavior.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Bot vs Human sessions over time
+        bot_sessions = sessions_df[sessions_df['is_bot'] == 1].groupby(sessions_df['timestamp'].dt.date).size().reset_index(name='bot_count')
+        human_sessions = sessions_df[sessions_df['is_bot'] == 0].groupby(sessions_df['timestamp'].dt.date).size().reset_index(name='human_count')
+        combined_sessions = pd.merge(bot_sessions, human_sessions, on='timestamp', how='outer').fillna(0)
+        
+        fig_bot_human = go.Figure()
+        fig_bot_human.add_trace(go.Scatter(x=combined_sessions['timestamp'], y=combined_sessions['bot_count'], name='Bot Sessions', line=dict(color=color_palette[1])))
+        fig_bot_human.add_trace(go.Scatter(x=combined_sessions['timestamp'], y=combined_sessions['human_count'], name='Human Sessions', line=dict(color=color_palette[2])))
+        fig_bot_human.update_layout(title='Bot vs Human Sessions Over Time', xaxis_title='Date', yaxis_title='Number of Sessions', plot_bgcolor='white')
+        st.plotly_chart(fig_bot_human, use_container_width=True, config={'displayModeBar': False})
+        
+        st.markdown("""
+        <div class='stAlert'>
+        <strong>Insights:</strong>
+        <ul>
+        <li>Compare the trends of bot and human sessions to identify unusual patterns.</li>
+        <li>A sudden increase in bot sessions might indicate a new bot attack strategy.</li>
+        <li>Consistent levels of human sessions suggest normal user behavior.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
     with tab2:
         st.header("User Profiles")
