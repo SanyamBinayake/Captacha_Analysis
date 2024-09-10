@@ -385,24 +385,28 @@ def main():
             prediction = model.predict(input_data)[0]
             probability = model.predict_proba(input_data)[0][1]
             
-            result_color = "#2ca02c" if prediction == 0 else "#d62728"
-            st.markdown(f"""
-            <div style='background-color: {result_color}; color: white; padding: 10px; border-radius: 5px;'>
-            <h3>Prediction: {'Human' if prediction == 0 else 'Bot'}</h3>
-            <p>Probability of being a bot: {probability:.2f}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("""
-            <div class='stAlert'>
-            <strong>Interpretation:</strong>
-            <ul>
-            <li>This tool allows you to input session data and see whether our model classifies it as a bot or human session.</li>
-            <li>The probability gives an idea of how confident the model is in its prediction.</li>
-            <li>Experimenting with different input values can help understand the model's decision boundaries.</li>
-            </ul>
-            </div>
-            """, unsafe_allow_html=True)
+             if prediction_proba < 0.3:
+                st.success(f"""
+                    Classification: Human
+                    
+                    The system has classified this session as a Human.
+                    Probability of being a bot: {prediction_proba:.2f}
+                """)
+            elif 0.3 <= prediction_proba <= 0.7:
+                st.warning(f"""
+                    Classification: Confused
+                    
+                    The system is unsure whether this session is a bot or a human.
+                    Probability of being a bot: {prediction_proba:.2f}
+                """)
+            else:
+                st.error(f"""
+                    Classification: Bot
+                    
+                    The system has classified this session as a Bot.
+                    Probability of being a bot: {prediction_proba:.2f}
+                """)
+
 
     # Footer
     st.sidebar.markdown("---")
