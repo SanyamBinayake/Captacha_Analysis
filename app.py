@@ -153,7 +153,26 @@ def main():
 
     with tab3:
         st.header("Session Analysis")
-        # The rest of the content for tab3 goes here...
+        fig_mouse = px.histogram(sessions_df, x='mouse_movements', color='is_bot',
+                                 title="Distribution of Mouse Movements",
+                                 labels={'mouse_movements': 'Mouse Movements', 'count': 'Number of Sessions'},
+                                 color_discrete_sequence=color_palette)
+        fig_mouse.update_layout(template='plotly_white')
+        st.plotly_chart(fig_mouse, use_container_width=True)
+        
+        fig_keyboard = px.histogram(sessions_df, x='keyboard_inputs', color='is_bot',
+                                    title="Distribution of Keyboard Inputs",
+                                    labels={'keyboard_inputs': 'Keyboard Inputs', 'count': 'Number of Sessions'},
+                                    color_discrete_sequence=color_palette)
+        fig_keyboard.update_layout(template='plotly_white')
+        st.plotly_chart(fig_keyboard, use_container_width=True)
+
+        fig_time = px.histogram(sessions_df, x='time_on_page', color='is_bot',
+                                title="Distribution of Time on Page",
+                                labels={'time_on_page': 'Time on Page (seconds)', 'count': 'Number of Sessions'},
+                                color_discrete_sequence=color_palette)
+        fig_time.update_layout(template='plotly_white')
+        st.plotly_chart(fig_time, use_container_width=True)
 
     with tab4:
         
