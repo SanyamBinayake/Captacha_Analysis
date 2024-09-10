@@ -153,26 +153,50 @@ def main():
 
     with tab3:
         st.header("Session Analysis")
-        fig_mouse = px.histogram(sessions_df, x='mouse_movements', color='is_bot',
-                                 title="Distribution of Mouse Movements",
-                                 labels={'mouse_movements': 'Mouse Movements', 'count': 'Number of Sessions'},
-                                 color_discrete_sequence=color_palette)
-        fig_mouse.update_layout(template='plotly_white')
-        st.plotly_chart(fig_mouse, use_container_width=True)
+        fig_mouse_keyboard = px.scatter(sessions_df, x='mouse_movements', y='keyboard_inputs', 
+                                        color='is_bot', title="Mouse Movements vs Keyboard Inputs",
+                                        labels={'mouse_movements': 'Mouse Movements', 'keyboard_inputs': 'Keyboard Inputs'},
+                                        color_discrete_map={0: color_palette[0], 1: color_palette[1]})
+        fig_mouse_keyboard.update_layout(plot_bgcolor='white')
+        st.plotly_chart(fig_mouse_keyboard, use_container_width=True, config={'displayModeBar': False})
         
-        fig_keyboard = px.histogram(sessions_df, x='keyboard_inputs', color='is_bot',
-                                    title="Distribution of Keyboard Inputs",
-                                    labels={'keyboard_inputs': 'Keyboard Inputs', 'count': 'Number of Sessions'},
-                                    color_discrete_sequence=color_palette)
-        fig_keyboard.update_layout(template='plotly_white')
-        st.plotly_chart(fig_keyboard, use_container_width=True)
-
-        fig_time = px.histogram(sessions_df, x='time_on_page', color='is_bot',
-                                title="Distribution of Time on Page",
+        st.markdown("""
+        <div class='stAlert'>
+        <strong>Insights:</strong>
+        <ul>
+        <li>Human users typically show a balance between mouse movements and keyboard inputs.</li>
+        <li>Bots might show unusual patterns, such as very high mouse movements with low keyboard inputs or vice versa.</li>
+        <li>Clusters in this plot can help identify different types of bot behavior.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Time on page distribution
+        fig_time = px.histogram(sessions_df, x='time_on_page', color='is_bot', 
+                                title="Time on Page Distribution",
                                 labels={'time_on_page': 'Time on Page (seconds)', 'count': 'Number of Sessions'},
-                                color_discrete_sequence=color_palette)
-        fig_time.update_layout(template='plotly_white')
-        st.plotly_chart(fig_time, use_container_width=True)
+                                color_discrete_map={0: color_palette[2], 1: color_palette[3]},
+                                barmode='overlay')
+        fig_time.update_layout(plot_bgcolor='white')
+        st.plotly_chart(fig_time, use_container_width=True, config={'displayModeBar': False})
+        
+        st.markdown("""
+        <div class='stAlert'>
+                    
+
+
+
+        <strong>Insights:</strong>
+        <ul>
+        <li>Human users typically spend varying amounts of time on a page, often following a normal distribution.</li>
+        <li>Bots might show very short page times or unusually long times.</li>
+        <li>This information can be crucial for setting thresholds in the passive CAPTCHA system.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.subheader("Session Data Sample")
+        st.dataframe(sessions_df.head(100))
 
     with tab4:
         
