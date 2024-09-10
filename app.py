@@ -149,7 +149,37 @@ def main():
 
     with tab2:
         st.header("User Profiles")
-        # The rest of the content for tab2 goes here...
+         col1, col2 = st.columns(2)
+        
+        with col1:
+            # Browser distribution
+            fig_browsers = px.pie(users_df['browser'].value_counts().reset_index(), 
+                                  values='count', names='browser', title="Browser Distribution",
+                                  color_discrete_sequence=color_palette)
+            fig_browsers.update_traces(textposition='inside', textinfo='percent+label')
+            st.plotly_chart(fig_browsers, use_container_width=True, config={'displayModeBar': False})
+        
+        with col2:
+            # Operating System distribution
+            fig_os = px.pie(users_df['operating_system'].value_counts().reset_index(), 
+                            values='count', names='operating_system', title="Operating System Distribution",
+                            color_discrete_sequence=color_palette)
+            fig_os.update_traces(textposition='inside', textinfo='percent+label')
+            st.plotly_chart(fig_os, use_container_width=True, config={'displayModeBar': False})
+        
+        st.markdown("""
+        <div class='stAlert'>
+        <strong>Insights:</strong>
+        <ul>
+        <li>Unusual browser or OS distributions might indicate bot activity.</li>
+        <li>This information can help tailor the passive CAPTCHA solution for different environments.</li>
+        <li>Consider focusing on the most common browsers and operating systems for initial implementation.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.subheader("User Data Sample")
+        st.dataframe(users_df.head(100))
 
     with tab3:
         st.header("Session Analysis")
