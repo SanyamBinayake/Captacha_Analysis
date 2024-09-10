@@ -90,7 +90,7 @@ def generate_session_data(users_df):
         'keyboard_inputs': [generate_keyboard_inputs() for _ in range(num_sessions)],
         'time_on_page': [generate_time_on_page() for _ in range(num_sessions)],
         'js_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
-        'cookie_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
+
     })
     
     sessions['is_bot'] = ((sessions['mouse_movements'] > 500) | 
@@ -102,7 +102,7 @@ def generate_session_data(users_df):
 # Train ML model
 @st.cache_resource
 def train_model(sessions_df):
-    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled']
+    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled']
     X = sessions_df[features]
     y = sessions_df['is_bot']
     
@@ -156,9 +156,6 @@ def main():
         # The rest of the content for tab3 goes here...
 
     with tab4:
-        st.header("ML Insights")
-        st.text("Random Forest Classifier Report:")
-        st.text(classification_report)
         
         st.markdown("---")
         
@@ -168,8 +165,7 @@ def main():
             'mouse_movements': st.slider("Mouse Movements", min_value=0, max_value=1000, value=50),
             'keyboard_inputs': st.slider("Keyboard Inputs", min_value=0, max_value=500, value=20),
             'time_on_page': st.slider("Time on Page (seconds)", min_value=1, max_value=300, value=50),
-            'js_enabled': st.selectbox("JavaScript Enabled", [True, False]),
-            'cookie_enabled': st.selectbox("Cookies Enabled", [True, False])
+            'js_enabled': st.selectbox("JavaScript Enabled", [True])
         }
 
         session_input = pd.DataFrame([user_input])
