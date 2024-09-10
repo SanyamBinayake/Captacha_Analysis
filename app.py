@@ -90,7 +90,6 @@ def generate_session_data(users_df):
         'keyboard_inputs': [generate_keyboard_inputs() for _ in range(num_sessions)],
         'time_on_page': [generate_time_on_page() for _ in range(num_sessions)],
         'js_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
-        'cookie_enabled': [random.choice([True, False]) for _ in range(num_sessions)],
     })
     
     sessions['is_bot'] = ((sessions['mouse_movements'] > 500) | 
@@ -102,7 +101,7 @@ def generate_session_data(users_df):
 # Train ML model
 @st.cache_resource
 def train_model(sessions_df):
-    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled', 'cookie_enabled']
+    features = ['mouse_movements', 'keyboard_inputs', 'time_on_page', 'js_enabled']
     X = sessions_df[features]
     y = sessions_df['is_bot']
     
